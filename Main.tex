@@ -9,6 +9,10 @@
 \usepackage{amsmath}
 \usepackage{amssymb}
 \usepackage{framed}
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\graphicspath{{img/}}
 
 \usetikzlibrary{arrows, chains, decorations}
 
@@ -104,12 +108,17 @@
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \section{Introduction}
   \label{sec:Introduction}
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
- % SECTION : Foundations
-%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
-  \section{Foundations}
-  \label{sec:Foundations}
 
+In this chapter, we will discuss the foundations of proofs, what can be done
+and what cannot, why and how. \newline
+
+The basis of this course are the programs. Every program has a language, the
+language we will use is a mix between Java and Pascal (it should be very
+easy for you to read it) that has a minimal set of interesting constructs
+because we only need assignment, sequence, choice (conditions) and loops.
+\newline
+
+\paragraph{Example} computing $a^b$
 \lstset{morekeywords={if,else,do,while}}
 \begin{lstlisting}
 stmt  ::= var=expr;
@@ -119,39 +128,264 @@ stmt  ::= var=expr;
 stmts ::= stmt*
 \end{lstlisting}
 
+Each language has a syntax (the structure of program text), a static semantics
+(typing, identifier scopes) that defines well-formed programs and a dynamic
+semantics that defines the program behaviour (including runtime errors).
+\newline
+
+\begin{verbatim}
+stmt  ::= var=expr;
+       |  {stmts}
+       |  if (bexpr) then stmt else stmt
+       |  while (bexpr) do stmt
+stmts ::= stmt*
+\end{verbatim}
+
+In this paper, we will only discuss well-formed programs without typing, and we
+don't care about static semantics: no variable declaration, no types here.
+
+  \begin{figure}[!ht]
+      \includegraphics[width=\linewidth]{program_proofs.png}
+      \caption{Program proofs}
+  \end{figure}
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+ % SECTION : Foundations
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+  \section{Foundations}
+  \label{sec:Foundations}
+
+\subsection{Expressions}
+\label{sub:Expressions}
+
+
+Programs are made of \textit{expressions} that are each part that computes a
+value. The syntax for expression is the following:
+
 \begin{verbatim}
 expr  ::= nexpr|bexpr|...
 nexpr ::= number|var|-nexpr|nexpr+nexpr|...
 bexpr ::= true|false|!bexpr|bexpr&&bexpr|...
 \end{verbatim}
 
-$nexpr \subset expr$
+Expressions are weither \textit{numerical expression} $nexpr \subset expr$
+($2,x, abs(y), a+b$) or boolean expressions $bexpr \subset expr$
+($a[k]>0, x==2, empty(l)$). We will assume that each expression is well-typed
+and pure (without side effect\footnote{Side effects are modifications of global
+variables or static variables or interaction with the world that may lead to
+variation between executions}). \newline
 
-$bexpr \subset expr$
+\subsection{Execution state}
+\label{sub:Execution state}
 
-$(S,\sigma) \longrightarrow (S',\sigma')$
+\begin{figure}[!ht]
+    \includegraphics[width=\linewidth]{execution_state.png}
+    \caption{Execution state}
+\end{figure}
 
-$$\frac{\phi_{1} ... \phi_{n}}{\phi}$$
+\paragraph{How do we store states?} We know the value of the variables (the
+result of evaluating expressions as integer or boolean in our examples). The
+set of data values $D$ for each state contains all the boolean
+$b \in B = {true, false}$, such that $B \subset D$. \newline
+
+Those data values $d \in D$ are stored in \textit{stores} (memory) that are
+functions that maps variables to their values. $\sigma$ is a store, $\Sigma$ is
+the set of all the functions from the variables to their domains, $var$ is a
+variable such that $\sigma \in \Sigma = var \rightarrow D$ with $\sigma(V)$ the
+value of $V$ in $\sigma$.
+
+\begin{minipage}{\linewidth}
+    \begin{minipage}{0.4\linewidth}
+        $$\sigma(a) = 2$$
+        $$\sigma(y)=8$$
+    \end{minipage}
+    \begin{minipage}{0.4\linewidth}
+        \centering
+        \begin{tabular}{ll}
+            \toprule
+            a & 2 \\
+            \midrule
+            b & 4 \\
+            \midrule
+            x & 1 \\
+            \midrule
+            y & 8 \\
+            \bottomrule
+        \end{tabular}
+    \end{minipage}
+\end{minipage}
+
+We can update the stores by modifying the value of the variables that we
+write $\sigma[V := d] = \sigma'$ such that
+
+\begin{itemize}
+    \item $\sigma'(V') = d$ when $V' =V$
+    \item $\sigma'(V') = \sigma(V')$ otherwise.
+\end{itemize}
+
+\begin{minipage}{\linewidth}
+    \begin{minipage}{0.4\linewidth}
+        $$\sigma[y := 16]$$
+    \end{minipage}
+    \begin{minipage}{0.4\linewidth}
+        \centering
+        \begin{tabular}{ll}
+            \toprule
+            a & 2 \\
+            \midrule
+            b & 4 \\
+            \midrule
+            x & 1 \\
+            \midrule
+            y & \textcolor{red}{16} \\
+            \bottomrule
+        \end{tabular}
+    \end{minipage}
+\end{minipage}
+
+A \textbf{control state} is the program (or the residual program) to be executed
+denoted $S \in stmt$. A \textbf{global state} is a \textit{configuration}, i.e.
+an abstract machine about to execute a program $S$ from a store $\sigma$,
+denoted $(S,\sigma) \in stmt \times \Sigma$ (or control $\times$ store).
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\linewidth]{global_state.png}
+    \caption{Representation of a global state}
+\end{figure}
+
+\subsection{Semantics}
+\label{sub:Semantics}
+
+In this part, we will describe the semantics used for expressions and boolean
+expressions. \newline
+
+As we consider expression in programs (only \textit{pure}\footnote{that does
+not have a side-effect} expression where $\sigma$ does not change), we have to
+extend $\sigma : V \rightarrow D$ to a valuation on $expr$:
+
+$$
+\sigma : expr \rightarrow D
+$$
+
+\begin{eqnarray}
+    \textcolor{red}{\sigma(}\textcolor{green!60!black}{42}\textcolor{red}{)} & = & \textcolor{red}{42} \\
+    \textcolor{red}{\sigma(}\textcolor{green!60!black}{true}\textcolor{red}{)} & = & \textcolor{red}{true} \\
+    \textcolor{red}{\sigma(}\textcolor{green!60!black}{E1*E2}\textcolor{red}{)} & = & \textcolor{red}{\sigma(}\textcolor{green!60!black}{E1}\textcolor{red}{) \times \sigma(}\textcolor{green!60!black}{E2}\textcolor{red}{)} \\
+    \textcolor{red}{\sigma(}\textcolor{green!60!black}{E1<=E2}\textcolor{red}{)} & = & \textcolor{red}{\sigma(}\textcolor{green!60!black}{E1}\textcolor{red}{) \le \sigma(}\textcolor{green!60!black}{E2}\textcolor{red}{)}
+\end{eqnarray}
+
+The parts in \textcolor{green!60!black}{green} are syntax, the parts in
+\textcolor{red}{red} are semantics. \newline
+
+For a boolean expression $B \in bexpr$, we define semantics as follow:
+
+\begin{itemize}
+    \item $[[B]] = \{\sigma \mid \sigma(B)\}$ is the set of stores in which $B$
+    is true.
+    \item $[[\lnot B]] = \{\sigma \mid \lnot \sigma(B)\}$ is the set of stores
+    in which $B$ is false.
+\end{itemize}
+
+For example,
+$$
+\textcolor{red}{[[}\textcolor{green!60!black}{E1<=E2}\textcolor{red}{]] = \{\sigma \mid \sigma(}\textcolor{green!60!black}{E1}\textcolor{red}{) \le \sigma(}\textcolor{green!60!black}{E2}\textcolor{red}{)\}}
+$$
+
+\subsection{Transition}
+\label{sub:Transition}
+
+We define a \textbf{transition relation} $\longrightarrow$ between
+configurations :
+
+$$(S,\sigma) \longrightarrow (S',\sigma')$$
+
+means:
+
+\begin{itemize}
+    \item executions of one step of $S$ from $\sigma$ yields $\sigma'$
+    \item $S'$ being the remainder of $S$ after that step
+\end{itemize}
+
+The transition relation $\longrightarrow$ defines an \textbf{operational
+semantics} for programs. The operational semantics will help us to know the
+meaning of the instructions step-by-step and thus to get from \textit{pre} to
+\textit{post}.
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\linewidth]{transition1.png}
+    \includegraphics[width=\linewidth]{transition2.png}
+    \caption{Transitions: Example}
+\end{figure}
+
+The transition relation is defined by \textit{induction} on program structure as
+\textbf{inference rules}. \newline
+
+\paragraph{Example} The instruction block $\{S_1 S_2 \ldots S_n\}$
+
+\begin{itemize}
+    \item IF $(S_1, \sigma) \longrightarrow (S_{1}^{'},\sigma')$ THEN
+    $(\{S_1S_2\ldots S_n\}, \sigma) \longrightarrow (\{S_1^{'}S_2\ldots S_n\},\sigma')$
+    \item IF $S_1 = \{\}$ (i.e. $S_1$ is done) THEN $(\{S_1S_2\ldots S_n\},\sigma) \longrightarrow (\{S_2\ldots S_n\}, \sigma)$
+\end{itemize}
+
+This is a \textbf{structural operational semantics} (SOS).
+
+\subsection{Inference}
+\label{sub:Inference}
+
+Now that we have the semantics with us, we will need rules to decide the value
+of the next state. We denote an inference rule as:
+
+$$\frac{\phi_{1} \ldots \phi_{n}}{\phi}$$
+
+which means that
+
+\begin{itemize}
+    \item if $\phi_1$ and \ldots and $\phi_n$ then $\phi$
+    \item from $\phi_1$ and \ldots and $\phi_n$ we can deduce $\phi$
+\end{itemize}
+
+Example:
 
 $$
 \frac{(S,\sigma) \longrightarrow (S', \sigma')}
-{(\{S\ SS\},\sigma) \longleftarrow (\{S'\ SS\}, \sigma')}
+{(\{S\ SS\},\sigma) \longrightarrow (\{S'\ SS\}, \sigma')}
 $$
+
+Axioms are particular cases of rules, because they are \textit{true} without
+condition. We denote them as:
 
 $$
 \frac{}
 {\ \phi \ }
 $$
 
+which means
+
+\begin{itemize}
+    \item $\phi$ is true
+    \item $\phi$ is an axiom
+\end{itemize}
+
+Example:
 $$
 \frac{}
 {(\{ \{ \} \ SS, \sigma \}) \longrightarrow (\{ SS \}, \sigma)}
 $$
+means that the \textit{empty program} followed by a sequence of instructions can
+be reduced to this sequence of instructions. \newline
 
-$$
-\frac{\phi_{1} \ldots \phi_{n}}
-{\phi}
-$$
+An \textbf{inference system} is a set of inference rules $R$ including axioms.
+Axioms and inference rules can be derivated to discover new rules that will lead
+to the searched proof. \newline
+
+A \textbf{derivation} of $\phi$ in $R$ (denoted $\vdash_R \phi$) is a sequence
+of formulae $\phi_0,\phi_1,\ldots,\phi_n$ ending with $\phi_n \equiv \phi$ such
+that each formula $\phi_k$ results from applying a rule of $R$ to preceding
+formulae $\phi_l$ with $l<k$. \newline
+
+We can formalize the construction by derivation from $R^0$ (the set of axioms):
 
 \begin{eqnarray}
 R^{0}   & = & \{\phi \mid \frac{}{\ \phi \ } \exists R\} \\
@@ -164,6 +398,13 @@ $$
 \vdash_{R} \phi \iff \phi \in R^{*}
 $$
 
+\subsection{Transition rules as inference rules}
+\label{sub:Transition rules as inference rules}
+
+In this part, we will write down transition rules as inference rules. We will
+do it for each element of our language: assignment, sequence, condition
+(choice), loop.
+
 \paragraph{Assignment V=E;}
 
 $$
@@ -171,7 +412,8 @@ $$
 {(V=E;,\sigma) \longrightarrow (\{ \}, \sigma [V := \sigma (E)] )}
 $$
 
-\paragraph{Sequence \{S SS\}}
+\paragraph{Sequence \{S SS\}} (S in the instruction, SS is the residual program
+to be executed)
 
 $$
 \frac{(S,\sigma) \longrightarrow (S',\sigma')}
@@ -211,7 +453,10 @@ $$
 \lnot\sigma(B)
 $$
 
-\paragraph{Runs, Termination, Divergence}
+\subsection{Runs, Termination, Divergence}
+
+A program terminates iff the execution leads to the empty program (an empty
+sequence of instructions). \newline
 
 $(S_{0}, \sigma_{0}) \longrightarrow^{*} (S_{k}, \sigma_{k})$ iff there is a
 \underline{finite} sequence
@@ -221,9 +466,9 @@ $$
 \longrightarrow (S_{k}, \sigma_{k})
 $$
 
-$(S, \sigma)$ terminates in $\sigma'$ iff $(S, \sigma) \longrightarrow^{*} (\{\}, \sigma')$
+$(S, \sigma)$ terminates in $\sigma'$ iff $(S, \sigma) \longrightarrow^{*} (\{\}, \sigma')$ (with $\longrightarrow^{*}$ meaning a finite number of steps)
 
-$(S_{0}, \sigma_{0}) \longrightarrow^{\omega}$ iff there is an \underline{infinite} sequence
+$(S_{0}, \sigma_{0}) \longrightarrow^{\omega}$ iff there is an \underline{infinite} sequence ($\omega$ means infinite enumerable)
 
 $$
 (S_{0}, \sigma_{0}) \longrightarrow (S_{1}, \sigma_{1}) \longrightarrow \ldots
