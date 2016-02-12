@@ -11,6 +11,7 @@
 \usepackage{framed}
 \usepackage{graphicx}
 \usepackage{booktabs}
+\usepackage{csquotes}
 
 \graphicspath{{img/}}
 
@@ -119,13 +120,21 @@ because we only need assignment, sequence, choice (conditions) and loops.
 \newline
 
 \paragraph{Example} computing $a^b$
-\lstset{morekeywords={if,else,do,while}}
-\begin{lstlisting}
-stmt  ::= var=expr;
-       |  {stmts}
-       |  if (bexpr) then stmt else stmt
-       |  while (bexpr) do stmt
-stmts ::= stmt*
+\lstset{basicstyle=\footnotesize,
+        frame=single,
+        morekeywords={if,else,do,while}
+        numbers=left,
+        numberstyle=\tiny\color{gray},
+        captionpos=below}
+\begin{lstlisting}[numbers=left,caption={Example of code},label=code:basiccode]
+{
+    x=b;
+    y=1;
+    while (x>0) do {
+        y=y*a;
+        x=x-1;
+    }
+}
 \end{lstlisting}
 
 Each language has a syntax (the structure of program text), a static semantics
@@ -466,15 +475,18 @@ $$
 \longrightarrow (S_{k}, \sigma_{k})
 $$
 
-$(S, \sigma)$ terminates in $\sigma'$ iff $(S, \sigma) \longrightarrow^{*} (\{\}, \sigma')$ (with $\longrightarrow^{*}$ meaning a finite number of steps)
+$(S, \sigma)$ \textit{terminates} in
+$\sigma'$ iff $(S, \sigma) \longrightarrow^{*} (\{\}, \sigma')$ (with
+$\longrightarrow^{*}$ meaning a finite number of steps)
 
-$(S_{0}, \sigma_{0}) \longrightarrow^{\omega}$ iff there is an \underline{infinite} sequence ($\omega$ means infinite enumerable)
+$(S_{0}, \sigma_{0}) \longrightarrow^{\omega}$ iff there is an
+\underline{infinite} sequence ($\omega$ means infinite enumerable)
 
 $$
 (S_{0}, \sigma_{0}) \longrightarrow (S_{1}, \sigma_{1}) \longrightarrow \ldots
 $$
 
-$(S,\sigma)$ diverges iff $(S,\sigma) \longrightarrow^{\omega}$
+$(S,\sigma)$ \textit{diverges} iff $(S,\sigma) \longrightarrow^{\omega}$
 
 \paragraph{Semantics: Partial Correctness}
 
@@ -498,6 +510,7 @@ $$
 [[S]](X) = \bigcup_{\sigma \in X} [[S]](\sigma)
 $$
 
+\begin{center}
 \begin{tikzpicture}[scale=0.7]
   \tikzstyle{suite}=[->,>=stealth’,thick,rounded corners=4pt]
 
@@ -507,8 +520,8 @@ $$
   \node (B) at (1, 0.0) {$X'$};
   \draw (5, 1) circle (2); % Right circle
   \draw (5, 2) ellipse (1.25 and 0.75); % Right ellipse in circle
-  \node (C) at (5, 2) {$[S](X)$};
-  \node (D) at (5, 0) {$[S](X')$};
+  \node (C) at (5, 2) {$[[S]](X)$};
+  \node (D) at (5, 0) {$[[S]](X')$};
   \node (E) at (1, 3) {}; % Top-left node
   \node (F) at (5, 3) {}; % Top-right node
   \draw[->,>=latex, very thick] (E)--(F); % Top arrow
@@ -522,6 +535,7 @@ $$
   \node (L) at (5.1, 1.25) {};
   \draw[->,>=latex, very thick] (K)--(L); % Bottom-ellipse arrow
 \end{tikzpicture}
+\end{center}
 
 \paragraph{Property}: [[S]] is monotonic:
 
@@ -553,9 +567,15 @@ If $S \neq \{ \}$, then there is one unique $(S',\sigma')$ such that
 $(S,\sigma) \longrightarrow (S', \sigma')$. \newline
 
 Hence $\lvert [[S]](\sigma) \rvert \le 1$ and $\lvert {[[S]]}_{\perp}(\sigma) \rvert = 1$. \\
-If $S$ terminates, then $[[S]](\sigma) = {[[S]]}_{\perp}(\sigma) = \{\sigma'\}, \sigma' \neq \perp$ \\
-If $S$ diverges, then $[[S]](\sigma) = \emptyset$ and ${[[S]]}_{\perp}(\sigma) = \{\perp\}$. \\
-This is not true later with non-deterministic choice and concurrency.
+\begin{itemize}
+    \item If $S$ terminates, then
+    $[[S]](\sigma) = {[[S]]}_{\perp}(\sigma) = \{\sigma'\}, \sigma' \neq \perp$
+    \item If $S$ diverges, then $[[S]](\sigma) = \emptyset$ and
+    ${[[S]]}_{\perp}(\sigma) = \{\perp\}$.
+\end{itemize}
+
+This will not be true anymore after we introduced non-deterministic choice and
+concurrency.
 
 \paragraph{Denotational Semantics}
 
@@ -575,6 +595,133 @@ without resorting to the transition relation.
 
 In this course, we will consider operational semantics only.
 
+\subsection{Program properties}
+\label{sub:Program properties}
+
+The goal of this course is to prove program properties. To reach this goal, we
+will need a \textit{logic} that applies to programs. We will mainly use the
+first-order logic, that has its own:
+
+\begin{description}
+    \item[Syntax]: $\phi ::= \ldots$
+    \item[Semantics]: $S \vDash\phi$ iff \ldots
+    \item[Proof]: $S \vdash\phi$ iff \ldots
+\end{description}
+
+\paragraph{Hoare triplets} The hoare triplet consists of preconditions, the
+execution of a program and the postcondition. The idea is that \textit{if} the
+preconditions are respected \textit{then} we can execute the program and at the
+\textit{end} the post-conditions will be respected. We denote it
+$$\{p\}\ S\ \{q\}$$
+
+where $p$ is the pre-condition and $q$ the post-condition, both are formulae
+(in predicate logic) or assertions. The idea of Hoare is to mix a program $S$
+with formul\ae{} such that you can apply a logical reasoning on each run:
+
+\begin{eqnarray}
+    \vDash \{p\} S \{q\} & \equiv & S \vDash \{p\} \bullet \{q\} \\
+    \vdash \{p\} S \{q\} & \equiv & S \vdash \{p\} \bullet \{q\} \\
+    \{p\} \bullet \{q\} & \equiv & \textrm{if } p \textrm{ before then } q
+    \textrm{ after}
+\end{eqnarray}
+
+\paragraph{Partial correctness} Hoare limited his work on partial correctness,
+which ensures the truthness of the post-condition only if the program ends, if
+it doesn't then we don't care. \enquote{\textbf{if} $p$ holds before
+\textbf{and} $S$ terminates, \textbf{then} $q$ holds after} which we denote as:
+$$
+\{p\}\ S\ \{q\}
+$$
+
+\paragraph{Total correctness} The total correctness adds to Hoare's work the
+fact that we can prove that if the precondition is respected, the program will
+terminate and the postcondition will be respected. \enquote{\textbf{if} $p$
+holds before \textbf{then} $S$ terminates \textbf{and} $q$ holds after}. We
+denote it as:
+$$
+[p]\ S\ [q]
+$$
+
+\paragraph{Assertions} Precondition $p$ and postcondition $q$ are assertions, it
+means that they are more than simple boolean expression (propositional logic)
+that are sufficient for conditions (assertion on states): they are more general,
+they can contain \textit{quantifiers} (first-order logic), equality and
+arithmetics. Quantifiers aren't effectively evaluable, for example:
+$$
+\exists m, n \cdot m > 1 \land n > 1 \land z = m.n
+$$
+cannot be evaluated at \verb#true# or \verb#false#, but we can check them with
+the data values in the stores and evaluate them on it to get a \verb#true# or
+\verb#false# value. \newline
+
+We can formalize assertions with first-order logic with the following syntax:
+$$
+cond ::= bexpr \mid cond \land cond \mid \forall var \cdot cond \mid \ldots
+$$
+and by the following semantics (assuming a given domain $D$):
+\begin{eqnarray*}
+    \sigma \vDash B          & \textrm{iff} & \sigma(B) = true \\
+    \sigma \vDash p \land p' & \textrm{iff} & \sigma \vDash p \textrm{ and } \sigma \vDash p' \\
+    \sigma \vDash \forall x \cdot p & \textrm{iff} & \textrm{for all } d \in D, \sigma[x:=d] \vDash p \\
+    & \cdots &
+\end{eqnarray*}
+
+The notation to verify a precondition $p$ becomes
+$$
+[[p]] = \{\sigma \mid \sigma \vDash p\}
+$$
+
+\subsection{Substitutions}
+\label{sub:Substitutions}
+
+As the value of the variables will change during the execution, we need a tool
+to write it down, it is what we call \textit{substitution}. We denote it
+$$
+p[E/V]
+$$
+which means that we substitute $E$ for $V$ in $p$. For example,
+$(x>2)[y-1/x]$ means that we will substitute $x$ by $y-1$ such that
+$(x>2)[y-1/x]=(y-1>2)$
+
+\paragraph{Renaming} As variables are represented by their \textit{identifier}
+in a program, you will sometimes substitutes a variable by another variable that
+use an already declared identifier. If you apply the substitution, it would
+capture the variable and lead to an incorrect proof. In this case (for
+expressions, assertions, formul\ae{},\ldots), you need to
+apply \textbf{renaming} first, such that there are no more conflicts between
+a variable already used and the new variable:
+$$
+(\exists \textcolor{red}{x} \cdot z = 2.\textcolor{red}{x})[(\textcolor{green!70!black}{x}+1)/z] = (\exists \textcolor{red}{x'} \cdot \textcolor{green!70!black}{x}+1 = 2.\textcolor{red}{x'})
+$$
+
+\paragraph{In the memory} Substitution is \textit{syntactic} (on an assertion)
+and update is \textit{semantic} (on a store).
+
+We write a substitution as
+$$
+(y=a^{b})[y.a/y] \equiv y . a = a^{b}
+$$
+And we write an update as
+$$
+\{a \mapsto 2, b \mapsto 3, y\mapsto 4\}[y=4.2] \equiv \{a \mapsto 2, b \mapsto 3, y\mapsto 8\}
+$$
+% TODO : Compare slide 39/55
+
+\paragraph{Substitution lemma}
+
+For any store $\sigma$, assertion $p$, expressions $E$, $E'$ and variable $V$
+(of same type as $E'$),
+
+\begin{eqnarray*}
+    \sigma(\textcolor{green!70!black}{E[E'/V}]) & = & \sigma[V:=\sigma(\textcolor{green!70!black}{E'})](\textcolor{green!70!black}{E}) \\
+    \sigma \vDash \textcolor{green!70!black}{p[E'/V]} & \iff & \sigma[V:=\sigma(\textcolor{green!70!black}{E'})] \vDash \textcolor{green!70!black}{p}
+\end{eqnarray*}
+\begin{eqnarray*}
+    \{\ldots V \mapsto d \ldots\} & \vDash & \textcolor{green!70!black}{p(\ldots E'(\ldots V \ldots) \ldots)} \\
+    \{\ldots V \mapsto E' (\ldots d\ldots) \ldots\} & \vDash & \textcolor{green!70!black}{p(\ldots V\ldots)}
+\end{eqnarray*}
+
+store update (semantics) $\equiv$ \textcolor{green!70!black}{substitution (syntax)}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
