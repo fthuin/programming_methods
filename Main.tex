@@ -152,6 +152,11 @@ stmts ::= stmt*
 
 In this paper, we will only discuss well-formed programs without typing, and we
 don't care about static semantics: no variable declaration, no types here.
+\newline
+
+In this chapter, the goal is to talk about what is program, what is a property
+and how we can build a proof system to automate the proof of properties on
+programs.
 
   \begin{figure}[!ht]
       \includegraphics[width=\linewidth]{program_proofs.png}
@@ -722,6 +727,150 @@ For any store $\sigma$, assertion $p$, expressions $E$, $E'$ and variable $V$
 \end{eqnarray*}
 
 store update (semantics) $\equiv$ \textcolor{green!70!black}{substitution (syntax)}
+
+\subsection{Property semantics}
+\label{sub:Property semantics}
+
+\paragraph{Principles} Now that we defined how we will write down properties, we
+need to define the principles for proof according to the property semantics. The
+idea is that for a given program $S$ and a given property $\phi$, we define
+the \textbf{validity} of $\phi$ over runs of $S$. We can say that $S$ satisfies
+$\phi$ (in $\sigma$) iff all its runs (from $\sigma$) satisfy $\phi$. \newline
+
+If $\phi$ is a property of \textbf{finite} runs,
+
+\begin{itemize}
+    \item The \textbf{partial correctness} is reached if all finite runs of $S$
+    satisfy $\phi$
+    \item The \textbf{termination} is reached if all runs are finite
+    \item The \textbf{total correctness} is reached if all runs are finite and
+    satisfy $\phi$.
+\end{itemize}
+
+\paragraph{Runs} A finite run satisfies $\{p\}\bullet\{q\}$ \textit{iff} if $p$
+holds before (in $\sigma$), then $q$ holds after (in $\sigma'$). We can denote
+this relation for the condition $p$ and $q$ as
+$$
+(\sigma, \sigma') \vDash \{p\}\bullet\{q\} \iff (\sigma\vDash p) \Rightarrow
+(\sigma' \vDash q)
+$$
+or in terms of stores (memory) as
+\begin{eqnarray*}
+    (\sigma,\sigma') \in [[S]] & \iff & \sigma' \in [[S]](\sigma) \\
+    & \iff & (S,\sigma) \longrightarrow^{*} (\{\}, \sigma') \\
+    & \iff & S \textrm{ has a run from } \sigma \textrm{ to } \sigma'
+\end{eqnarray*}
+
+\paragraph{Program} These notations were fine for a single run, but a program
+has infinite possibilities of runs : a program satisfies $\{p\}\bullet\{q\}$ iff
+all runs satisfy $\{p\}\bullet\{q\}$, what can be written :
+$$
+\forall (\sigma,\sigma') \in [[S]] \cdot (\sigma,\sigma') \vDash \{p\}\bullet\{q\}
+$$
+$$
+\forall(\sigma,\sigma') \in [[S]] \cdot (\sigma \vDash p) \Rightarrow (\sigma'\vDash q)
+$$
+$$
+\forall\sigma \vDash p \cdot \forall\sigma'\in[[S]](\sigma)\cdot(\sigma'\vDash q)
+$$
+$$
+[[S]]([[p]]) \subseteq [[q]]
+$$
+Using this last formula saying that the property is respected if all the runs of
+$S$ over $p$ form a subset of $q$ (which means that we can't reach any state
+that doesn't respect the property $q$ after any execution of $S$ on $p$), we
+can write the following logical equivalence:
+$$
+\vDash \{p\} S \{q\} \iff [[S]]([[p]]) \subseteq [[q]]
+$$
+
+\paragraph{Total correctness} By definition, $\perp \not\in [[q]]$, so likewise
+we can write
+$$
+\vDash \{p\} S \{q\} \iff {[[S]]}_{\perp}([[p]]) \subseteq [[q]]
+$$
+which means that if $S$ diverges from a store where $p$ holds, then $[p] S [q]$
+is invalid.
+
+\subsection{Proof system}
+\label{sub:Proof system}
+
+The computation of a proof for a formula $\phi$ can be automated by a proof
+system leading to the following results:
+
+\begin{itemize}
+    \item prove $\phi$ (result \textbf{true});
+    \item refute $\phi$ (result \textbf{false});
+    \item fail (result \textbf{unknown}).
+\end{itemize}
+
+Usually, proof systems are non-deterministic because they have to make choices
+between different ways of solving the problem (for example: choices between
+axioms, choice between inference rules,\ldots). In proof systems, $\phi$ has the
+form $\{p\} S\{q\}$ and we distinguish two characteristics:
+\begin{itemize}
+    \item $\vdash \phi \Rightarrow \vDash \phi$ the system is sound (it answers
+    true only when $\phi$ is provable). It means that the system doesn't make
+    any mistake when it finds a result (which is not true for tests or model
+    checking);
+    \item $\vDash \phi \Rightarrow \vdash \phi$ the system is complete (it
+    proves true everytime $\phi$ holds). It means that the system can prove
+    everything that is true so it doesn't fail. Absolute completeness doesn't
+    exist for any logic that contains arithmetics [Gödel 1931] and Hoare logic
+    contains arithmetics, but relative completeness is possible (all true
+    formulae are provable from true --- but not necessarily provable ---
+    assertions).
+\end{itemize}
+
+The proof system is in fact an \textbf{inference system} $R$ that derives
+\textbf{theorems} from inference rules $\frac{\phi_1\ldots\phi_n}{\phi}$ and
+from axioms $\frac{}{\ \phi\ }$ where $\phi,\phi_1,\ldots,\phi_n$ are triplets
+$\{p\}S\{q\}$. \newline
+
+A derivation of $\phi$ in $R$ is a \textbf{proof} of $\phi$, and $\phi$ is a
+\textbf{theorem} of $R$ (${\vdash}_{R}\phi$) iff there is a proof of $\phi$
+in $R$.
+
+\paragraph{Assertion proofs} Program proofs $S\vdash \phi$ will be reduced to
+assertion proofs $\vdash p$. For example:
+$$
+\frac
+{p\Rightarrow p', \{p'\}S\{q'\}, q'\Rightarrow q}
+{\{p\}S\{q\}}
+$$
+The idea behind a proof system is to reduce a complex problem (that is program
+proofs) to a simpler problem (that is assertion proofs).
+
+\subsection{Decidability}
+\label{sub:Decidability}
+
+As we saw, it is not possible to have a sound and complete proof system, it can
+be explained by the fact that we cannot enumerate invalid $\{p\}S\{q\}$ (because
+of the use of first-order logic in $\{p\}$ and $\{q\}$). \textbf{First-order
+logic} reduces to $\{p\}S\{q\}$: $\vDash p$ iff $\vDash \{true\} \{ \} \{p\}$.
+\newline
+
+A second explaination can be found through the \textbf{existential halting
+problem}. We know that we can't know if a program will halt one day, so
+trying to be sure that $S$ never halts iff $\vDash \{ true\} S \{ false\}$ is
+impossible. \newline
+
+A third explaination can be found through the \textbf{universal halting
+problem}. We know that we can't know if a program will always halt on any input
+so trying to be sure that $S$ always halts iff $\vDash [true] S [true]$ is
+impossible. \newline
+
+Generally, $\vDash \{ p \} S \{ q \}$ is \textbf{not decidable} because
+neither valid nor invalid formul\ae{} are recursively enumerable. A proof of
+$\phi$ may exist (completeness) but not be found (decidability). Remember that
+it will force us to use approximate methods that are decidable but imprecise,
+usually incomplete (and sometimes also unsound).
+
+\begin{figure}[!ht]
+    \centering
+    \includegraphics[width=\linewidth]{decidability.png}
+    \caption{Illustration of the problem of decidability}
+\end{figure}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
