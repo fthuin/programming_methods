@@ -13,6 +13,7 @@
 \usepackage{booktabs}
 \usepackage{csquotes}
 \usepackage{hyperref}
+\usepackage[inference]{semantic}
 
 \graphicspath{{img/}}
 
@@ -1229,9 +1230,177 @@ while (x > 0) do {
     The invariant $I$ must be \enquote{guessed}, it does not derive mechanically
     from the property to be proven. $p$ is in general too strong to be the
     invariant and $q$ is too weak, we need an intermediate $I$ such that
-    $p \Rightarrow I$ and $I \land \lnot B \Rightarrow q$. 
+    $p \Rightarrow I$ and $I \land \lnot B \Rightarrow q$.
 
+    \subsubsection{Example: Conclusion}
 
+    We wanted to prove:
+
+    $$
+    \{ b \ge 0 \}
+    $$
+    $$
+    \{ x =b ; y=1; \textrm{ while } (x>0) \textrm{ do } \{ \ldots \} \}
+    $$
+    $$
+    \{ y = {a}^{b} \}
+    $$
+
+    \begin{eqnarray*}
+        (b \ge 0) \Rightarrow (b \ge 0 \land b =b \land 1 = 1) & \textrm{(assertion)} \\
+        \{ b \ge 0 \land b = b \land 1 = 1 \} \{ x=b; y=1; \} \{ x \ge 0 \land x = b \land y = 1 \} & \textrm{(assignment, sequence)} \\
+        \{ X \ge 0 \land x =b \land y = 1 \} while (x>0) do \{ \ldots \} \{ y = {a}^{b} \} & \textrm{(loop, consequence)}
+    \end{eqnarray*}
+
+    Hence the property (sequence, consequence)
+
+    \subsection{Total correctness}
+
+    \subsubsection{Rule}
+
+    For this rule, we do not need to change the rules already defined for
+    consequence, assignment, sequence and choice. Here is the one for the
+    loop:
+
+    \begin{framed}
+        \inference{
+        \begin{array}{l}
+            [I \land B] S [I], \\
+            [I \land B \land E = z] S [E < z], \\
+            I \Rightarrow E \ge 0
+        \end{array}
+        }
+        {[I] \textrm{ while } (B) do S [I \land\lnot{} B]}
+    \end{framed}
+
+    $E$ is an integer-type expression, if we allow real expression we have the
+    risk that it could decrease indefinitely (for example, x=1 and a loop until
+    $x == 0$ where $x:=x/2$ would make $x$ decreases but never reach 0). $z$
+    must be a fresh variable (that does not occur in $S$, $B$, $E$, $I$). This
+    rule is \textbf{non-constructive} as we must \enquote{guess} $E$ and $I$.
+
+    \subsubsection{Example}
+
+    We want to prove:
+    $[b \ge 0]$
+\begin{lstlisting}
+{
+    x = b;
+    y = 1;
+    while (x > 0) do \ldots
+}
+\end{lstlisting}
+    $[y = a^{b}]$
+
+    \bigskip
+
+    Remember that $\{ p \} S \{ q \}$ is the proof of partial correctness and
+    here we talk about $[p] S [q]$ which adds \textbf{termination}. The only
+    thing that can prevent the termination is the loop, the termination of the
+    loop will lead to the termination of the program:
+
+    $[ x \ge 0 \land x =b \land y=1]$
+\begin{lstlisting}
+    while (x>0) do { y = y *a ; x = x -1; }
+\end{lstlisting}
+    $y = {a}^{b}$
+
+    \bigskip
+
+    We want to prove
+    $[x \ge 0 \land x =b \land y =1]$
+\begin{lstlisting}
+    while (x>0) do { y = y * a; x = x -1; }
+\end{lstlisting}
+    $[y = {a}^{b}]$
+
+    \bigskip
+
+    We add a \textbf{loop variant} $x$ to the variant $y = {a}^{b-x} \land x \ge 0$
+    for partial correctness. We prove that the \textbf{variant decreases} on
+    every execution of the body of the loop: \newline
+
+    $[y = {a}^{b-x} \land x \ge 0 \land x > 0 \land x = {x}_{0}]$
+\begin{lstlisting}
+    { y = y * a; x = x-1; }
+\end{lstlisting}
+    $[x < {x}_{0}]$
+
+    \bigskip
+
+    We prove that the variant \textbf{remains positive or null} within the
+    scope of the invariant:
+
+    $$
+    y = {a}^{b-x} \land x \ge 0 \Rightarrow x \ge 0
+    $$
+
+    As you can see, this is an assertion.
+
+    We can deduce the desired property as for partial correctness:
+
+    $[y = {a}^{b-x} \land x \ge 0]$
+\begin{lstlisting}
+while (x > 0) do {
+    y = y * a;
+    x = x - 1;
+}
+\end{lstlisting}
+    $[y = {a}^{b-x} \land x \ge 0 \land 0 \land x \le 0]$
+
+    \subsubsection{Well-founded termination}
+
+    As working only with integer isn't always enough, we can generalize the
+    termination for non-integer variants if there exists a well-founded order
+    on the variable discussed in the variant. We write the rule as
+
+    \begin{framed}
+        \inference{
+            \begin{array}{l}
+                [I \land B] S [I], \\
+                [I \land B \land E = z] S [E \prec z], \\
+                I \Rightarrow W(E)
+            \end{array}
+        }
+        {[I] \textrm{ while } (B) do S [I \land\lnot{} B]}
+    \end{framed}
+
+    where
+    \begin{itemize}
+        \item $E$ is an expression of type $T$ (domain ${D}_{T}$)
+        \item $\prec$ is a binary predicate (relation) over ${D}_{T} \times {D}_{T}$
+        \item $W$ is a predicate defining a subset of $D_T$
+        \item $[[\prec]]$ is \textbf{well-founded order} over $[[W]] \subseteq {D}_T$
+        \item $z$ is a fresh variable (not occuring in $S$, $B$, $E$, $I$)
+    \end{itemize}
+
+    \subsection{Constance}
+
+    If the execution of $S$ doesn't affect any variable in $p$, i.e.
+    if $vars(p) \cap assign(S) = \oslash$ then
+
+    \begin{framed}
+        \inference{}
+        { \{ p \} S \{ p \}}
+    \end{framed}
+
+    \subsection{Conjunction}
+
+    \begin{framed}
+        \[
+        \inference{ \{ p \} S \{ q \}, \{ p' \} S \{ q' \} }
+        { \{ p \land p' \} S \{ q \land q' \} }
+        \]
+    \end{framed}
+
+    \subsection{Disjunction}
+
+    \begin{framed}
+        \[
+        \inference{ \{ p \} S \{ q \}, \{ p' \} S \{ q' \} }
+        { \{ p \lor p' \} S \{ q \lor q' \} }
+        \]
+    \end{framed}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
