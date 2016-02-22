@@ -906,69 +906,332 @@ $$
 \{ b \ge 0\} S \{ y = a^b \}
 $$
 
-$$
-\frac{}
-{\{ p[E/V] \} V=E; \{ p \} }
-$$
-$$
-\frac{}
-{ \{ p(E) \} V=E; \{ p(V) \} }
-$$
-$$
-\frac
-{ \{ p_1 \} S_1 \{ q_1 \} \ldots \{ p_n \} S_n \{ q_n \} }
-{ \{ p \} S \{ q \} }
-$$
-$$
-\frac
-{ \{ P_1 \} S_1 \{ q_1 \} \ldots \{ P_n \} S_n \{ q_n \} }
-{ \{ p \} S \{ Q \} }
-$$
-$$
-\frac{}
-{ \{ p \} V=E; \{ \exists V_0 \cdot p[ V_0 / V] \land V = E[V_0 / V] }
-$$
-$$
-\{ x \cdot x = x^2 \} y = x*x; \{ y = x^2 \}
-$$
-$$
-\{ true \} y = x*x; \{ y= x^2 \}
-$$
-$$
-\{ true \} y = x*x; \{ y \ge 0 \}
-$$
-$$
-\{ true \} \Rightarrow \{ x \cdot x = x^2 \} S \{ y = x^2 \} \Rightarrow \{ y \ge 0 \}
-$$
-$$
-\frac
-{ p \Rightarrow p', \{ p' \} S \{ q' \}, q' \Rightarrow q }
-{ \{ p \} S \{ q \} }
-$$
-$$
-\frac
-{ \{ p_0 \} S_1 \{ p_1 \}, \ldots , \{ p_{n-1} \} S_n \{ p_n \} }
-{ \{ p_0 \} \{ S_1 \ldots S_n \} \{ p_n \} }
-$$
-$$
-\frac{}
-{ \{ p \} \{ \} \{ p \} }
-$$
-$$
-\frac
-{ \{ p \land B \} S_1 \{ q \}, \{ p \land \lnot B \} S_2 \{ q \} }
-{ \{ p \} \textrm{ if } (B) \textrm{ then } S_1 \textrm{ else } S_2 \{ q \} }
-$$
-$$
-\frac
-{ \{ p_1 \} S_1 \{ q \}, \{ p_2 \} S_2 \{ q \} }
-{ \{ (B \land p_1 ) \lor (\lnot B \land p_2 ) \} \textrm{ if } (B) \textrm{ then } S_1 \textrm{ else } S_2 \{ q \} \} }
-$$
-$$
-\frac
-{ \{ I \land B \} S \{ I \} }
-{ \{ I \} \textrm{ while } (B) \textrm{ do } S \{ I \land \lnot B \} }
-$$
+    \subsection{Assignment}
+
+    \subsubsection{Rule}
+
+    $$
+    \frac{}
+    { \{ p[E/V] \} V = E; \{ p \} }
+    $$
+
+    $$
+    \frac{}
+    { \{ p(E) \} V = E ; \{ p(V) \} }
+    $$
+
+    \subsubsection{Example}
+    If $p(E)$ holds before $x = E;$ then $p(x)$ holds after.
+
+    \begin{minipage}{\linewidth}
+        \begin{tabular}{ll}
+            a & 2 \\
+            b & 3 \\
+            x & ? \\
+            y & ? \\
+        \end{tabular}
+        x = b;
+        \begin{tabular}{ll}
+            a & 2 \\
+            b & 3 \\
+            x & 3 \\
+            y & ? \\
+        \end{tabular}
+    \end{minipage}
+    \begin{minipage}{\linewidth}
+        \begin{tabular}{ll}
+            a & 2 \\
+            b & 3 \\
+            x & 3 \\
+            y & 2 \\
+        \end{tabular}
+        x = x - 1;
+        \begin{tabular}
+            a & 2 \\
+            b & 3 \\
+            x & 2 \\
+            y & 2 \\
+        \end{tabular}
+    \end{minipage}
+
+    \subsubsection{Left construction}
+
+    We will use the \textit{left-constructive} approach, such that with the
+    last rule, we will start from $p$ to build $p[E/V]$. \newline
+
+    \textbf{Left construction} is a proof strategy for $\{ p \} S \{ q\}$ where
+    a precondition $p$ for $S$ is derived mechanically from a postcondition $q$.
+    \newline
+
+    An inference rule
+    $$
+    \frac{\{ {p}_{1} {S}_{1} \{ {q}_{1} \} \ldots \{ {p}_{n} \} {S}_{n} \{ {q}_{n}\}}
+    { \{ p \} S \{ q \}}
+    $$
+    is \textit{left-constructive} iff it allows left construction on the
+    conclusion, assuming left construction on the premises, i.e. derive $p$
+    from $q$, assuming one can derive each ${p}_{i}$ from $q_{i}$ (in some
+    order). Concretely, a \textbf{left-constructive rule} has the form
+    $$
+    \frac{ \{ {P}_{1} \} {S}_{1} \{ {q}_{1} \} \ldots \{ {P}_{n} \} {S}_{n} \{ {q}_{n} \} }
+    { \{ p \} S \{ Q \} }
+    $$
+    where (for some ordering of the premises)
+    \begin{itemize}
+        \item $Q, {P}_{1}, \ldots, {P}_{n}$ are simple logic variables
+        \item Each ${q}_{i}$ is expressed in termes of $S$ and $Q, {P}_{1}, \ldots, {P}_{i-1}$
+        \item $p$ is expressed in termes of $S$ and $Q, {P}_{1}, \ldots, {P}_{n}$
+    \end{itemize}
+
+    \subsubsection{Right construction}
+
+    The \textbf{right construction} is also possible but less convenient, the
+    inference rule is
+    $$
+    \frac{}
+    { \{ p \} V=E; \{ \exists {V}_{0} \cdot p[{V}_{0}/V] \land V = E[{V}_{0}/V] \} }
+    $$
+    where ${V}_{0}$ is the old value of $V$ which is lost in the assignment.
+    This is more complex because it introduces $\exists$ quantifiers.
+
+    \subsection{Consequence}
+
+    \subsubsection{Rule}
+
+    The following rule is the heart of mechanical proofs (WP calculus,
+    verification conditions):
+
+    $$
+    \frac{ p \Rightarrow p' , \{ p' \} S \{ q' \} , q' \Rightarrow q }
+    { \{ p \} S \{ q \} }
+    $$
+
+    This is a purely logical rule, independent from the programming language.
+    $p \Rightarrow p'$, $q' \Rightarrow q$ are assertions, which connect Hoare
+    logic with the underlying assertion logic (assertions to be proven in an
+    auxiliary proof system). The underlying meaning of this rule is that
+     $\{ p \} S \{ q \}$ remains valid if we strenghten $p$ and/or weaken $q$.
+
+    \subsubsection{Example}
+
+    The left construction has a consequence, for example we can prove for the
+    assignment:
+    $$
+    \{ x \cdot x = {x}^{2} y = x * x; \{ y = {x}^{2} \}
+    $$
+
+    But what if we want to deduce
+    $$
+    \{ true \} y = x*x; \{ y = {x}^{2} \}
+    $$
+    $$
+    \{ true \} y = x*x; \{ y \ge 0 \}
+    $$
+
+    This is valid since
+    $$
+    \{ true \} \Rightarrow \{ x \cdot x = {x}^{2} \} S \{ y = {x}^{2} \} \Rightarrow \{ y \ge 0 \}
+    $$
+    but this is \textit{not derivable} by the assignment rule.
+
+    \subsection{Sequence}
+
+    \subsubsection{Rule}
+
+    $$
+    \frac{ \{ {p}_{0} \} {S}_{1} \{ {p}_{1} \}, \ldots, \{ {p}_{n-1} \} {S}_{n} \{ {p}_n \} }
+    { \{ {p}_{0} \} \{ {S}_{1} \ldots {S}_{n} \} \{ {p}_{n} \} }
+    $$
+
+    In particular,
+    $$
+    \frac{}
+    { \{ p \} \{ \} \{ p \} }
+    $$
+
+    The sequence rule is \textbf{left-constructive}, if for each
+    $\{ {p}_{i-1}\} {S}_{i} \{ {p}_{i} \}$, we can build ${p}_{i-1}$ from ${p}_{i}$,
+    then we can build ${p}_{0}$ from ${p}_{n}$ (via ${p}_{n-1}$ then ${p}_{n-2}$,
+    etc.). If some ${S}_{i}$ is not left-constructive, we must \enquote{guess}
+    ${p}_{i-1}$. The sequence rule is also right-constructive but this will be
+    less useful.
+
+    \subsubsection{Example}
+
+    The principle is to introduce \textit{intermediate conditions}:
+
+    \begin{minipage}{\linewidth}
+        \begin{minipage}{0.4\linewidth}
+            $$ \{ y \cdot a = {a}^{b-(x-1)} $$
+            $$ y = y * a; $$
+            $$ \{ y = {a}^{b-(x-1)} \} $$
+            \bigskip
+            $$ \{ y = {a}^{b-(x-1)} \} $$
+            $$ x = x - 1; $$
+            $$ \{ y = {a}^{b-x} \} $$
+        \end{minipage}
+        \begin{minipage}{0.05\linewidth}
+            $$ \vdash $$
+        \end{minipage}
+        \begin{minipage}{0.4\linewidth}
+            $$ \{ y \cdot a = {a}^{b-(x-1)} \} $$
+            $$ \{ y = y * a; \} $$
+            $$ x = x - 1; $$
+            $$ \{ y = {a}^{b-x} \} $$
+        \end{minipage}
+    \end{minipage}
+
+    \subsection{Choice}
+
+    \subsubsection{Rule}
+
+    We can define a \textbf{top-down} inference rule, from $p$ and $q$
+    (conclusion) we can build $p \land B$, $p \land \lnot B$ (premisses)
+
+    $$
+    \frac
+    { \{ p \land B \} S_1 \{ q \}, \{ p \land \lnot B \} S_2 \{ q \} }
+    { \{ p \} \textrm{ if } (B) \textrm{ then } S_1 \textrm{ else } S_2 \{ q \} }
+    $$
+
+    There exists a \textbf{left-constructive} variant
+
+    $$
+    \frac
+    { \{ p_1 \} S_1 \{ q \}, \{ p_2 \} S_2 \{ q \} }
+    { \{ (B \land p_1 ) \lor (\lnot B \land p_2 ) \} \textrm{ if } (B) \textrm{ then } S_1 \textrm{ else } S_2 \{ q \} \} }
+    $$
+
+    \subsection{Loop}
+
+    We want to prove
+
+    $ \{ x \ge 0 \land x = b \land y =1 \}$
+\begin{lstlisting}
+while (x > 0) do {
+    y = y * a;
+    x = x -1;
+}
+\end{lstlisting}
+    $ y = {a}^{b} $
+
+    To prove it, we use a \textbf{loop invariant} $y = {a}^{b-x} \land x \ge 0$
+    and we denote it $I(x,y)$ for short. We \textit{prove} that the invariant
+    is \textbf{preserved by the body} of the loop and we \textit{infer} that
+    the invariant is \textbf{preserved by the loop}.
+
+    \subsubsection{Preserved invariant}
+
+    Let $I(x,y) \equiv y = {a}^{b-x} \land x \ge 0$ \newline
+
+    We have:
+
+    \begin{eqnarray*}
+        I(x,y) \land x > 0 \Rightarrow I(x-1, y \cdot a) & \textrm{assertion} \\
+        \{ I(x-1, y \cdot a) \} y = y * a; \{ I(x-1, y) \} & \textrm{assignment} \\
+        \{ I(x-1, y) \} x = x - 1; \{ I(x,y) & \textrm{assigment}
+    \end{eqnarray*}
+
+    Hence we infer (sequence, consequence):
+    $$
+    \{ I(x,y) \land x > 0 \} \{ y = y*a; x=x-1; \} \{ I(x,y) \}
+    $$
+
+    \subsubsection{Derivation}
+
+    Let $I(x,y) \equiv y = {a}^{b-x} \land x \ge 0$, we have
+
+    $$
+    \{ I(x,y) \land x > 0 \} \{ y=y*a; x=x-1; \} \{ I(x,y) \}
+    $$
+
+    We can infer (loop):
+
+    \begin{minipage}{\linewidth}
+        \begin{minipage}{0.3\linewidth}
+            $\{ I(x,y) \}$
+        \end{minipage}
+        \begin{minipage}{0.3\linewidth}
+\begin{lstlisting}
+    while (x > 0) do {
+        y = y * a;
+        x = x-1;
+}
+\end{lstlisting}
+        \end{minipage}
+        \begin{minipage}{0.3\linewidth}
+            $\{ I(x,y) \land x \le 0 \}$
+        \end{minipage}
+    \end{minipage}
+
+    \subsubsection{Consequence}
+
+    Let $I(x,y) \equiv y = {a}^{b-x} \land x \ge 0$, we have
+
+    \begin{minipage}{\linewidth}
+        \begin{minipage}{0.3\linewidth}
+            $\{ I(x,y) \}$
+        \end{minipage}
+        \begin{minipage}{0.3\linewidth}
+\begin{lstlisting}
+    while (x > 0) do {
+        y = y * a;
+        x = x-1;
+}
+\end{lstlisting}
+        \end{minipage}
+        \begin{minipage}{0.3\linewidth}
+            $\{ I(x,y) \land x \le 0 \}$
+        \end{minipage}
+    \end{minipage}
+
+    and also:
+
+    \begin{eqnarray*}
+        (x \ge 0 \land x = b \land y = 1) \Rightarrow I(x,y) & \textrm{(assertion)} \\
+        (I(x,y) \land x \le 0) \Rightarrow (y = {a}^{b}) & \textrm{(assertion)}
+    \end{eqnarray*}
+
+    Hence (consequence):
+
+    \begin{minipage}{\linewidth}
+        \begin{minipage}{0.3\linewidth}
+            $\{ x \ge 0 \land x = b \land y = 1 \}$
+        \end{minipage}
+        \begin{minipage}{0.3\linewidth}
+            \begin{lstlisting}
+                while (x>0) do {
+                    y = y*a;
+                    x = x-1;
+                }
+            \end{lstlisting}
+        \end{minipage}
+        \begin{minipage}{0.3\linewidth}
+            $\{ y = {a}^{b} \}$
+        \end{minipage}
+    \end{minipage}
+
+    Q.E.D.
+
+    \subsubsection{Rule}
+
+    $I$ is the invariant, this rule is \textbf{non-constructive} (i.e.\ not
+    top-down, not left-constructive).
+
+    \subsection{Choosing the invariant}
+
+    $$
+    \frac
+    { \{ I \land B \} S \{ I \} }
+    { \{ I \} \textrm{ while } (B) \textrm{ do } S \{ I \land \lnot B \} }
+    $$
+
+    The invariant $I$ must be \enquote{guessed}, it does not derive mechanically
+    from the property to be proven. $p$ is in general too strong to be the
+    invariant and $q$ is too weak, we need an intermediate $I$ such that
+    $p \Rightarrow I$ and $I \land \lnot B \Rightarrow q$. 
+
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
