@@ -12,13 +12,14 @@
 \usepackage{graphicx}
 \usepackage{booktabs}
 \usepackage{csquotes}
+\usepackage{hyperref}
 
 \graphicspath{{img/}}
 
 \usetikzlibrary{arrows, chains, decorations}
 
 \author{Florian Thuin}
-\title{LSINF2224 - Programming methods}
+\title{LSINF2224 --- Programming methods}
 
 \begin{document}
     \maketitle
@@ -886,6 +887,89 @@ usually incomplete (and sometimes also unsound).
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \section{Sequential Programs}
   \label{sec:Sequential Programs}
+
+As a sequential program, we will use our previous example that computes $a^b$.
+
+\begin{lstlisting}[caption={Function computing $a^b$}, captionpos=below]
+{
+    x=b;
+    y=1;
+    while (x>0) do {
+        y = y * a;
+        x = x - 1;
+    }
+}
+\end{lstlisting}
+
+To be sure that this program does what we think, we need to prove
+$$
+\{ b \ge 0\} S \{ y = a^b \}
+$$
+
+$$
+\frac{}
+{\{ p[E/V] \} V=E; \{ p \} }
+$$
+$$
+\frac{}
+{ \{ p(E) \} V=E; \{ p(V) \} }
+$$
+$$
+\frac
+{ \{ p_1 \} S_1 \{ q_1 \} \ldots \{ p_n \} S_n \{ q_n \} }
+{ \{ p \} S \{ q \} }
+$$
+$$
+\frac
+{ \{ P_1 \} S_1 \{ q_1 \} \ldots \{ P_n \} S_n \{ q_n \} }
+{ \{ p \} S \{ Q \} }
+$$
+$$
+\frac{}
+{ \{ p \} V=E; \{ \exists V_0 \cdot p[ V_0 / V] \land V = E[V_0 / V] }
+$$
+$$
+\{ x \cdot x = x^2 \} y = x*x; \{ y = x^2 \}
+$$
+$$
+\{ true \} y = x*x; \{ y= x^2 \}
+$$
+$$
+\{ true \} y = x*x; \{ y \ge 0 \}
+$$
+$$
+\{ true \} \Rightarrow \{ x \cdot x = x^2 \} S \{ y = x^2 \} \Rightarrow \{ y \ge 0 \}
+$$
+$$
+\frac
+{ p \Rightarrow p', \{ p' \} S \{ q' \}, q' \Rightarrow q }
+{ \{ p \} S \{ q \} }
+$$
+$$
+\frac
+{ \{ p_0 \} S_1 \{ p_1 \}, \ldots , \{ p_{n-1} \} S_n \{ p_n \} }
+{ \{ p_0 \} \{ S_1 \ldots S_n \} \{ p_n \} }
+$$
+$$
+\frac{}
+{ \{ p \} \{ \} \{ p \} }
+$$
+$$
+\frac
+{ \{ p \land B \} S_1 \{ q \}, \{ p \land \lnot B \} S_2 \{ q \} }
+{ \{ p \} \textrm{ if } (B) \textrm{ then } S_1 \textrm{ else } S_2 \{ q \} }
+$$
+$$
+\frac
+{ \{ p_1 \} S_1 \{ q \}, \{ p_2 \} S_2 \{ q \} }
+{ \{ (B \land p_1 ) \lor (\lnot B \land p_2 ) \} \textrm{ if } (B) \textrm{ then } S_1 \textrm{ else } S_2 \{ q \} \} }
+$$
+$$
+\frac
+{ \{ I \land B \} S \{ I \} }
+{ \{ I \} \textrm{ while } (B) \textrm{ do } S \{ I \land \lnot B \} }
+$$
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SECTION : Verification conditions
