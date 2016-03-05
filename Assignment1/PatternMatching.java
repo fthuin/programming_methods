@@ -15,6 +15,10 @@
 ** You should have received a copy of the GNU General Public License
 ** along with this program; if not, write to the Free Software
 ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+**
+** Specifications in JML by Florian THUIN (SINF21MS/G) and Symeon MALENGREAU (SINF22MS/G)
+** LINGI2224 - Programming methods 2015-2016
+** Assignment 1, March 07, 2016
 */
 
 public class PatternMatching {
@@ -22,10 +26,18 @@ public class PatternMatching {
     /**
      * Returns true iff p occurs as a substring in t starting at index k.
      */
+
     /*@@
+     @ // No table can be null because the method needs the length attribute.
+     @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
+     @ // k is an index of the table, k has to be non-negative.
      @ requires 0 <= k;
+     @ // Returns true iff:
+     @ // 1) k + the pattern length isn't greater than the table length
+     @ // AND
+     @ // 2) each element at index i from 0 to k in the pattern matches each element at index i to i+k in the table
      @ ensures \result <==> ((k + p.length <= t.length) && (\forall int i; 0 <= i && i < p.length ; p[i] == t[i+k]));
      @*/
     private static /*@ pure @*/ boolean matches(int[] p, int[] t,  int k) {
@@ -33,11 +45,63 @@ public class PatternMatching {
         if (k + p.length > t.length) {
             result = false;
         } else {
-            //@ assert k + p.length <= t.length;
             int i = 0;
             boolean match = true;
+            // From precondition we know k >= 0,
+            // In this part of the condition, we know k + p.length <= t.length
+
+            // 'i' will iterate over 'p' as follow: 
+            //
+            // | 0 |         ...          | p.length
+            // +---+----------------------+
+            // | i |                      |
+            // |---+--+---+---+--+--+--+--+
+            // |   |  |   |   |  |  |  |  |
+            // +---+--+---+---+--+--+--+--+
+            //
+            // | 0 |         ...          | p.length
+            // +---+------+---+-----------+
+            // |   |      | i |           | 
+            // |---+--+---+---+--+--+--+--+
+            // |   |  |   |   |  |  |  |  |
+            // +---+--+---+---+--+--+--+--+
+            // Such that we need 0 <= i < p.length during the iteration 
+            // over 'p', the case where i==p.length (at the latest, if match)
+            // that would be an out-of-bound case is handled by the
+            // end-condition of the while-loop (i==p.length will exit
+            // the loop without ever be an index of 'p' and will never
+            // enter the loop).
+            //
+            // 'k+i' will iterate over 't' as follow:
+            // | k |          ...         | t.length
+            // +---+----------------------+
+            // | i |                      |
+            // +---+---+---+---+---+---+--+
+            // |   |                      |
+            // +---+---+---+---+---+---+--+
+            //
+            // | k |          ...         | t.length
+            // +---+-------+---+----------+
+            // |   |       | i |          |
+            // +---+---+---+---+---+---+--+
+            // |   |                      |
+            // +---+---+---+---+---+---+--+
+            // Such that we need 0 <= k + i < t.length during the
+            // iteration over 't', the case where k+i==t.length (at the
+            // latest, if match) that would be an out-ouf-bound case is
+            // handled by the end-condition of the while-loop AND by the
+            // 'if' condition (this part is the 'else' of an if..then..else
+            // construction)
+            //
             //@ loop_invariant 0 <= i && i <= p.length && k + i <= t.length;
+            // Match must be true iff the already-visited-pattern from
+            // 0 to i exclusive matches the already-visited-table from k
+            // to i+k exclusive.
             //@ loop_invariant match <==> (\forall int a ; 0 <= a && a < i ; p[a]==t[a+k]); 
+
+            // As 'i' is the index for 'p' and it is increasing at
+            // each iteration and 'p' isn't modified (this is a pure
+            // method), p.length - i is the variant of this loop.
             //@ decreasing p.length - i ;
             while (i != p.length && match) {
                 match = p[i] == t[k + i];
