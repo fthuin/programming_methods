@@ -60,7 +60,7 @@ public class PatternMatching {
      @*/
     public static int find(int[] p, int[] t) {
         int i = 0;
-        //@ loop_invariant 0 <= i && (i <= 1 + t.length - p.length || i == 0);
+        //@ loop_invariant 0 <= i;
         //@ loop_invariant (\forall int k; 0 <= k && k < i; !matches(p,t,k));
         //@ decreasing t.length - p.length - i;
         while (i <= t.length - p.length) {
