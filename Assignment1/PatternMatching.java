@@ -87,7 +87,7 @@ public class PatternMatching {
         int i = n;
         //@ loop_invariant n <= i;
         //@ loop_invariant (\forall int k; n <= k && k < i ; !matches(p, t, k));
-        //@ decreasing t.length - p.length - i
+        //@ decreasing t.length - p.length - i;
         while (i <= t.length - p.length) {
             if (matches(p, t, i)) {
                 return i;
@@ -106,13 +106,15 @@ public class PatternMatching {
      @ requires p != null;
      @ requires t != null;
      @ ensures \result >= 0 <==> (\exists int k; 0 <= k && k <= t.length - p.length ; matches(p, t, k));
-     @ ensures \result >= 0 <==> (\forall int j; \result <= j && j <= t.length - p.length ; !matches(p, t, j));
+     @ ensures \result >= 0 ==> (\forall int j; \result < j && j <= t.length - p.length ; !matches(p, t, j));
      @*/
     public static /*@ pure @*/ int findLast(int[] p, int[] t) {
         int i = 0;
         int k = -1;
         //@ loop_invariant 0 <= i;
         //@ loop_invariant (\forall int a; k < a && a < i; !matches(p, t, a));
+        //@ loop_invariant k >= 0 ==> matches(p,t,k);
+        //@ decreasing t.length - p.length - i;
         while (i <= t.length - p.length) {
             if (matches(p, t, i)) {
                 k = i;
