@@ -1,0 +1,22 @@
+ESC/Java version ESCJava-2.0.5
+    [0.042 s 19194568 bytes]
+
+PatternMatching ...
+  Prover started:0.015 s 37703784 bytes
+    [0.476 s 37703784 bytes]
+
+PatternMatching: matches(int[], int[], int) ...
+    [0.085 s 38974272 bytes]  passed
+
+PatternMatching: find(int[], int[]) ...
+    [0.155 s 41515088 bytes]  passed
+
+PatternMatching: find(int[], int[], int) ...
+    [0.094 s 43420680 bytes]  passed
+
+PatternMatching: findLast(int[], int[]) ...
+    [0.165 s 45961392 bytes]  passed
+
+PatternMatching: PatternMatching() ...
+    [0.007 s 45961392 bytes]  passed
+  [0.982 s 45961392 bytes total]
