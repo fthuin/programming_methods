@@ -32,7 +32,7 @@ public class PatternMatching {
      @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
-     @ // k is an index of the table, k has to be non-negative.
+     @ // k should be an index of the table, k has to be non-negative.
      @ requires 0 <= k;
      @ // Returns true iff:
      @ // 1) k + the pattern length isn't greater than the table length
@@ -118,14 +118,28 @@ public class PatternMatching {
 	 * a substring of t.
      */
     /*@@
+     @ // No table can be null because the method needs the length attribute.
+     @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
+     @ // This method will return a non-negative number iff
+     @ // there exists a 'k' from 0 to t.length - p.length such that
+     @ // matches(p,t,k) returns true (i.e. 'p' is a substring of 't' starting
+     @ // at index 'k').
      @ ensures \result >= 0 <==> (\exists int k; 0 <= k && k <= t.length - p.length; matches(p, t, k));
      @*/
-    public static int find(int[] p, int[] t) {
+    public static /*@ pure @*/ int find(int[] p, int[] t) {
         int i = 0;
+        // 'i' is an index of arrays, must be non-negative
         //@ loop_invariant 0 <= i;
+        //
+        // No substring with the pattern 'p' in 't' starts from an index
+        // between 0 and 'i' exclusive.
         //@ loop_invariant (\forall int k; 0 <= k && k < i; !matches(p,t,k));
+        //
+        // As the loop iterates, 'i' is increasing. As the method is
+        // pure, the length of 't' or 'p' doesn't change, such that
+        // this is a possible variant:
         //@ decreasing t.length - p.length - i;
         while (i <= t.length - p.length) {
             if (matches(p, t, i)) {
@@ -142,15 +156,29 @@ public class PatternMatching {
      * p is not a substring of t.
      */
     /*@@
+     @ // No table can be null because the method needs the length attribute.
+     @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
+     @ // n should be an index of the table, n has to be non-negative.
      @ requires n >= 0;
+     @ // Result must be positive iff
+     @ // there is a substring matching 'p' in a part of 't' starting at index 'n'.
      @ ensures \result >= 0 <==> (\exists int k; n <= k && k <= t.length - p.length; matches(p, t, k));
      @*/
     public static /*@ pure @*/ int find(int[] p, int[] t, int n) {
         int i = n;
+        // 'i' must be positive (as n>=0 in the pre) and an index
+        // greater than or equals to n..
         //@ loop_invariant n <= i;
+        
+        // No substring with the pattern 'p' in 't' starts from an index
+        // between 'n' and 'i' exclusive.
         //@ loop_invariant (\forall int k; n <= k && k < i ; !matches(p, t, k));
+        
+        // As the loop iterates, 'i' is increasing. As the method is
+        // pure, the length of 't' or 'p' doesn't change, such that
+        // this is a possible variant:
         //@ decreasing t.length - p.length - i;
         while (i <= t.length - p.length) {
             if (matches(p, t, i)) {
@@ -167,17 +195,35 @@ public class PatternMatching {
      * is not a substring of t.
      */
     /*@@
+     @ // No table can be null because the method needs the length attribute.
+     @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
+     @ // This method will return a non-negative number iff
+     @ // there exists a 'k' from 0 to t.length - p.length such that
+     @ // matches(p,t,k) returns true (i.e. 'p' is a substring of 't' starting
+     @ // at index 'k').
      @ ensures \result >= 0 <==> (\exists int k; 0 <= k && k <= t.length - p.length ; matches(p, t, k));
+     @ // As a non-negative value as a result isn't sufficient, we also need
+     @ // this non-negative value to be the last one inside the bound of the
+     @ // table. That means there are no substring matching 'p' at any
+     @ // greater index of 't' than the given result.
      @ ensures \result >= 0 ==> (\forall int j; \result < j && j <= t.length - p.length ; !matches(p, t, j));
      @*/
     public static /*@ pure @*/ int findLast(int[] p, int[] t) {
         int i = 0;
         int k = -1;
+        // 'i' is an array index, it has to be positive
         //@ loop_invariant 0 <= i;
+        // 'k' is the last index where a substring matching 'p'
+        // has been found in 't':
         //@ loop_invariant (\forall int a; k < a && a < i; !matches(p, t, a));
+        // If 'k' is non-negative, it means that 'p' is a substring
+        // of 't' starting at 'k':
         //@ loop_invariant k >= 0 ==> matches(p,t,k);
+        // As the loop iterates, 'i' is increasing. As the method is
+        // pure, the length of 't' or 'p' doesn't change, such that
+        // this is a possible variant:
         //@ decreasing t.length - p.length - i;
         while (i <= t.length - p.length) {
             if (matches(p, t, i)) {
