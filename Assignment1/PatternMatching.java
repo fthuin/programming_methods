@@ -71,4 +71,30 @@ public class PatternMatching {
         }
         return -1;
     }    
+
+    /**
+     * Returns the smallest index i after n such that p is a
+     * substring of t starting at i. Returns a negative number if
+     * p is not a substring of t.
+     */
+    /*@@
+     @ requires p != null;
+     @ requires t != null;
+     @ requires n >= 0;
+     @ ensures \result >= 0 <==> (\exists int k; n <= k && k <= t.length - p.length; matches(p, t, k+n));
+     @*/
+    public static /*@ pure @*/ int find(int[] p, int[] t, int n) {
+        int i = n;
+        //@ loop_invariant n <= i;
+        while (n <= t.length - p.length) {
+            if (matches(p, t, i)) {
+                return i;
+            }
+            i = i + 1;
+        }
+        return -1;
+    }
+    
+    public static /*@ pure @*/ int findLast(int[] p, int[] t) {
+    }
 }
