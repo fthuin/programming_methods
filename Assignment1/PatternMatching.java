@@ -122,6 +122,7 @@ public class PatternMatching {
      @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
+	 // TODO requires p.length <= t.length
      @ // This method will return a non-negative number iff
      @ // there exists a 'k' from 0 to t.length - p.length such that
      @ // matches(p,t,k) returns true (i.e. 'p' is a substring of 't' starting
@@ -131,6 +132,7 @@ public class PatternMatching {
     public static /*@ pure @*/ int find(int[] p, int[] t) {
         int i = 0;
         // 'i' is an index of arrays, must be non-negative
+		// TODO loop_invariant 0 <= i <= t.length - p.length;
         //@ loop_invariant 0 <= i;
         //
         // No substring with the pattern 'p' in 't' starts from an index
@@ -160,6 +162,7 @@ public class PatternMatching {
      @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
+	 // TODO requires p.length + n <= t.length
      @ // n should be an index of the table, n has to be non-negative.
      @ requires n >= 0;
      @ // Result must be positive iff
@@ -170,6 +173,7 @@ public class PatternMatching {
         int i = n;
         // 'i' must be positive (as n>=0 in the pre) and an index
         // greater than or equals to n..
+		// TODO loop_invariant n <= i <= t.length - p.length;
         //@ loop_invariant n <= i;
         
         // No substring with the pattern 'p' in 't' starts from an index
@@ -199,6 +203,7 @@ public class PatternMatching {
      @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
+	 // TODO requires p.length <= t.length
      @ // This method will return a non-negative number iff
      @ // there exists a 'k' from 0 to t.length - p.length such that
      @ // matches(p,t,k) returns true (i.e. 'p' is a substring of 't' starting
@@ -214,6 +219,7 @@ public class PatternMatching {
         int i = 0;
         int k = -1;
         // 'i' is an array index, it has to be positive
+		// TODO loop_invariant 0 <= i <= t.length - p.length;
         //@ loop_invariant 0 <= i;
         // 'k' is the last index where a substring matching 'p'
         // has been found in 't':
