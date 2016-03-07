@@ -1,5 +1,5 @@
 /*
-** Copyright (C) 2008 José Vander Meulen <jose.vandermeulen@uclouvain.be>, 
+** Copyright (C) 2008 José Vander Meulen <jose.vandermeulen@uclouvain.be>,
 **                    Charles Pecheur <charles.pecheur@uclouvain.be>
 **
 ** This program is free software; you can redistribute it and/or modify
@@ -50,7 +50,7 @@ public class PatternMatching {
             // From precondition we know k >= 0,
             // In this part of the condition, we know k + p.length <= t.length
 
-            // 'i' will iterate over 'p' as follow: 
+            // 'i' will iterate over 'p' as follow:
             //
             // | 0 |         ...          | p.length
             // +---+----------------------+
@@ -61,11 +61,11 @@ public class PatternMatching {
             //
             // | 0 |         ...          | p.length
             // +---+------+---+-----------+
-            // |   |      | i |           | 
+            // |   |      | i |           |
             // |---+--+---+---+--+--+--+--+
             // |   |  |   |   |  |  |  |  |
             // +---+--+---+---+--+--+--+--+
-            // Such that we need 0 <= i < p.length during the iteration 
+            // Such that we need 0 <= i < p.length during the iteration
             // over 'p', the case where i==p.length (at the latest, if match)
             // that would be an out-of-bound case is handled by the
             // end-condition of the while-loop (i==p.length will exit
@@ -97,7 +97,7 @@ public class PatternMatching {
             // Match must be true iff the already-visited-pattern from
             // 0 to i exclusive matches the already-visited-table from k
             // to i+k exclusive.
-            //@ loop_invariant match <==> (\forall int a ; 0 <= a && a < i ; p[a]==t[a+k]); 
+            //@ loop_invariant match <==> (\forall int a ; 0 <= a && a < i ; p[a]==t[a+k]);
 
             // As 'i' is the index for 'p' and it is increasing at
             // each iteration and 'p' isn't modified (this is a pure
@@ -127,8 +127,11 @@ public class PatternMatching {
      @ // matches(p,t,k) returns true (i.e. 'p' is a substring of 't' starting
      @ // at index 'k').
      @ ensures \result >= 0 <==> (\exists int k; 0 <= k && k <= t.length - p.length; matches(p, t, k));
+     @ // A positive result has to be the smallest index:
      @ ensures \result >= 0 ==> (\forall int a; 0 <= a && a < \result; !matches(p,t,a));
+     @ // A positive result has to be inside the bounds
      @ ensures \result >= 0 ==>  \result <= t.length - p.length;
+     @ // A positive result has to be the exact index where p matches t
      @ ensures \result >= 0 ==> matches(p,t,\result);
      @*/
     public static /*@ pure @*/ int find(int[] p, int[] t) {
@@ -151,7 +154,7 @@ public class PatternMatching {
             i = i + 1;
         }
         return -1;
-    }    
+    }
 
     /**
      * Returns the smallest index i after n such that p is a
@@ -168,8 +171,11 @@ public class PatternMatching {
      @ // Result must be positive iff
      @ // there is a substring matching 'p' in a part of 't' starting at index 'n'.
      @ ensures \result >= 0 <==> (\exists int k; n <= k && k <= t.length - p.length; matches(p, t, k));
+     @ // The result has to be the first one that matches after 'n'
      @ ensures \result >= 0 ==> (\forall int a; n <= a && a < \result; !matches(p,t,a));
+     @ // A positive index result can only be between 'n' and the last possible matching index
      @ ensures \result >= 0 <==> (n <= \result && \result <= t.length - p.length);
+     @ // The result must be an index where p matches t
      @ ensures \result >= 0 ==> matches(p,t,\result);
      @*/
     public static /*@ pure @*/ int find(int[] p, int[] t, int n) {
@@ -178,11 +184,11 @@ public class PatternMatching {
         // precondition of matches, and 'i' is an index
         // greater than or equals to n:
         //@ loop_invariant n <= i;
-        
+
         // No substring with the pattern 'p' in 't' starts from an index
         // between 'n' and 'i' exclusive.
         //@ loop_invariant (\forall int k; n <= k && k < i ; !matches(p, t, k));
-        
+
         // As the loop iterates, 'i' is increasing. As the method is
         // pure, the length of 't' or 'p' doesn't change, such that
         // this is a possible variant:
@@ -195,7 +201,7 @@ public class PatternMatching {
         }
         return -1;
     }
-    
+
     /**
      * Returns the highest index i after such that p is a substring
      * of t starting at i. Returns a negative number if p
@@ -215,9 +221,10 @@ public class PatternMatching {
      @ // this non-negative value to be the last one inside the bound of the
      @ // table. That means there are no substring matching 'p' at any
      @ // greater index of 't' than the given result.
-     @ ensures \result >= 0 <==> (\exists int k; 0 <= k && k <= t.length - p.length ; matches(p,t,k));
      @ ensures \result >= 0 ==> (\forall int j; \result < j && j <= t.length - p.length ; !matches(p, t, j));
+     @ // The result must be inside the bounds:
      @ ensures \result >= 0 ==> \result <= t.length - p.length;
+     @ // The resulting index must be exactly the one where the pattern matches in the table
      @ ensures \result >= 0 ==> matches(p,t,\result);
      @*/
     public static /*@ pure @*/ int findLast(int[] p, int[] t) {
