@@ -122,17 +122,18 @@ public class PatternMatching {
      @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
-	 // TODO requires p.length <= t.length
      @ // This method will return a non-negative number iff
      @ // there exists a 'k' from 0 to t.length - p.length such that
      @ // matches(p,t,k) returns true (i.e. 'p' is a substring of 't' starting
      @ // at index 'k').
      @ ensures \result >= 0 <==> (\exists int k; 0 <= k && k <= t.length - p.length; matches(p, t, k));
+     @ ensures \result >= 0 ==> (\forall int a; 0 <= a && a < \result; !matches(p,t,a));
+     @ ensures \result >= 0 ==>  \result <= t.length - p.length;
+     @ ensures \result >= 0 ==> matches(p,t,\result);
      @*/
     public static /*@ pure @*/ int find(int[] p, int[] t) {
         int i = 0;
         // 'i' is an index of arrays, must be non-negative
-		// TODO loop_invariant 0 <= i <= t.length - p.length;
         //@ loop_invariant 0 <= i;
         //
         // No substring with the pattern 'p' in 't' starts from an index
@@ -162,18 +163,20 @@ public class PatternMatching {
      @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
-	 // TODO requires p.length + n <= t.length
      @ // n should be an index of the table, n has to be non-negative.
      @ requires n >= 0;
      @ // Result must be positive iff
      @ // there is a substring matching 'p' in a part of 't' starting at index 'n'.
      @ ensures \result >= 0 <==> (\exists int k; n <= k && k <= t.length - p.length; matches(p, t, k));
+     @ ensures \result >= 0 ==> (\forall int a; n <= a && a < \result; !matches(p,t,a));
+     @ ensures \result >= 0 <==> (n <= \result && \result <= t.length - p.length);
+     @ ensures \result >= 0 ==> matches(p,t,\result);
      @*/
     public static /*@ pure @*/ int find(int[] p, int[] t, int n) {
         int i = n;
-        // 'i' must be positive (as n>=0 in the pre) and an index
-        // greater than or equals to n..
-		// TODO loop_invariant n <= i <= t.length - p.length;
+        // 'i' must be positive (as n>=0 in the pre) because it is a
+        // precondition of matches, and 'i' is an index
+        // greater than or equals to n:
         //@ loop_invariant n <= i;
         
         // No substring with the pattern 'p' in 't' starts from an index
@@ -203,7 +206,6 @@ public class PatternMatching {
      @ // The two next lines are to avoid null dereferences.
      @ requires p != null;
      @ requires t != null;
-	 // TODO requires p.length <= t.length
      @ // This method will return a non-negative number iff
      @ // there exists a 'k' from 0 to t.length - p.length such that
      @ // matches(p,t,k) returns true (i.e. 'p' is a substring of 't' starting
@@ -213,13 +215,16 @@ public class PatternMatching {
      @ // this non-negative value to be the last one inside the bound of the
      @ // table. That means there are no substring matching 'p' at any
      @ // greater index of 't' than the given result.
+     @ ensures \result >= 0 <==> (\exists int k; 0 <= k && k <= t.length - p.length ; matches(p,t,k));
      @ ensures \result >= 0 ==> (\forall int j; \result < j && j <= t.length - p.length ; !matches(p, t, j));
+     @ ensures \result >= 0 ==> \result <= t.length - p.length;
+     @ ensures \result >= 0 ==> matches(p,t,\result);
      @*/
     public static /*@ pure @*/ int findLast(int[] p, int[] t) {
         int i = 0;
         int k = -1;
-        // 'i' is an array index, it has to be positive
-		// TODO loop_invariant 0 <= i <= t.length - p.length;
+        // 'i' is an array index, it has to be positive (it is a
+        // precondition of matches)
         //@ loop_invariant 0 <= i;
         // 'k' is the last index where a substring matching 'p'
         // has been found in 't':
