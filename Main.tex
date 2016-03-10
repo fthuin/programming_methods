@@ -19,6 +19,16 @@
 
 \usetikzlibrary{arrows, chains, decorations}
 
+\lstset{
+    language=Java,
+    basicstyle=\footnotesize,
+    frame=single,
+    morekeywords={if,else,do,while},
+    numbers=left,
+    numberstyle=\tiny\color{gray},
+    captionpos=below,
+}
+
 \author{Florian Thuin}
 \title{LSINF2224 --- Programming methods}
 
@@ -122,12 +132,6 @@ because we only need assignment, sequence, choice (conditions) and loops.
 \newline
 
 \paragraph{Example} computing $a^b$
-\lstset{basicstyle=\footnotesize,
-        frame=single,
-        morekeywords={if,else,do,while}
-        numbers=left,
-        numberstyle=\tiny\color{gray},
-        captionpos=below}
 \begin{lstlisting}[numbers=left,caption={Example of code},label=code:basiccode]
 {
     x=b;
@@ -194,7 +198,8 @@ variation between executions}). \newline
 \label{sub:Execution state}
 
 \begin{figure}[!ht]
-    \includegraphics[width=\linewidth]{execution_state.png}
+    \centering
+    \includegraphics[width=0.6\linewidth]{execution_state.png}
     \caption{Execution state}
 \end{figure}
 
@@ -229,6 +234,7 @@ value of $V$ in $\sigma$.
         \end{tabular}
     \end{minipage}
 \end{minipage}
+\bigskip
 
 We can update the stores by modifying the value of the variables that we
 write $\sigma[V := d] = \sigma'$ such that
@@ -265,7 +271,7 @@ denoted $(S,\sigma) \in stmt \times \Sigma$ (or control $\times$ store).
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\linewidth]{global_state.png}
+    \includegraphics[width=0.5\linewidth]{global_state.png}
     \caption{Representation of a global state}
 \end{figure}
 
@@ -329,8 +335,8 @@ meaning of the instructions step-by-step and thus to get from \textit{pre} to
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\linewidth]{transition1.png}
-    \includegraphics[width=\linewidth]{transition2.png}
+    \includegraphics[width=0.8\linewidth]{transition1.png}
+    \includegraphics[width=0.6\linewidth]{transition2.png}
     \caption{Transitions: Example}
 \end{figure}
 
@@ -870,7 +876,7 @@ usually incomplete (and sometimes also unsound).
 
 \begin{figure}[!ht]
     \centering
-    \includegraphics[width=\linewidth]{decidability.png}
+    \includegraphics[width=0.65\linewidth]{decidability.png}
     \caption{Illustration of the problem of decidability}
 \end{figure}
 
@@ -924,34 +930,55 @@ $$
     \subsubsection{Example}
     If $p(E)$ holds before $x = E;$ then $p(x)$ holds after.
 
-    \begin{minipage}{\linewidth}
+    \begin{minipage}{0.45\linewidth}
         \begin{tabular}{ll}
+            \toprule
             a & 2 \\
+            \midrule
             b & 3 \\
+            \midrule
             x & ? \\
+            \midrule
             y & ? \\
+            \bottomrule
         \end{tabular}
-        x = b;
+        $x = b;$
         \begin{tabular}{ll}
+            \toprule
             a & 2 \\
+            \midrule
             b & 3 \\
+            \midrule
             x & 3 \\
+            \midrule
             y & ? \\
+            \bottomrule
         \end{tabular}
     \end{minipage}
-    \begin{minipage}{\linewidth}
+    \bigskip
+    \begin{minipage}{0.45\linewidth}
         \begin{tabular}{ll}
+            \toprule
             a & 2 \\
+            \midrule
             b & 3 \\
+            \midrule
             x & 3 \\
+            \midrule
             y & 2 \\
+            \bottomrule
         \end{tabular}
         x = x - 1;
-        \begin{tabular}
+        \begin{tabular}{ll}
+            \toprule
             a & 2 \\
+            \midrule
             b & 3 \\
+            \midrule
             x & 2 \\
+            \midrule
             y & 2 \\
+            \bottomrule
         \end{tabular}
     \end{minipage}
 
@@ -1018,15 +1045,15 @@ $$
     The left construction has a consequence, for example we can prove for the
     assignment:
     $$
-    \{ x \cdot x = {x}^{2} y = x * x; \{ y = {x}^{2} \}
+    \{ x \cdot x = {x}^{2} \}\quad y = x * x; \quad \{ y = {x}^{2} \}
     $$
 
     But what if we want to deduce
     $$
-    \{ true \} y = x*x; \{ y = {x}^{2} \}
+    \{ true \}\quad y = x*x; \quad \{ y = {x}^{2} \}
     $$
     $$
-    \{ true \} y = x*x; \{ y \ge 0 \}
+    \{ true \}\quad y = x*x; \quad \{ y \ge 0 \}
     $$
 
     This is valid since
@@ -1060,10 +1087,11 @@ $$
     \subsubsection{Example}
 
     The principle is to introduce \textit{intermediate conditions}:
+    \bigskip
 
     \begin{minipage}{\linewidth}
         \begin{minipage}{0.4\linewidth}
-            $$ \{ y \cdot a = {a}^{b-(x-1)} $$
+            $$ \{ y \cdot a = {a}^{b-(x-1)} \}$$
             $$ y = y * a; $$
             $$ \{ y = {a}^{b-(x-1)} \} $$
             \bigskip
@@ -1072,7 +1100,7 @@ $$
             $$ \{ y = {a}^{b-x} \} $$
         \end{minipage}
         \begin{minipage}{0.05\linewidth}
-            $$ \vdash $$
+            \Huge $$ \vdash $$
         \end{minipage}
         \begin{minipage}{0.4\linewidth}
             $$ \{ y \cdot a = {a}^{b-(x-1)} \} $$
@@ -1107,14 +1135,18 @@ $$
 
     We want to prove
 
-    $ \{ x \ge 0 \land x = b \land y =1 \}$
+    \begin{center}
+    $$\{ x \ge 0 \land x = b \land y =1 \}$$
+    \begin{minipage}{0.3\linewidth}
 \begin{lstlisting}
 while (x > 0) do {
     y = y * a;
     x = x -1;
 }
 \end{lstlisting}
-    $ y = {a}^{b} $
+    \end{minipage}
+    $$y = {a}^{b}$$
+    \end{center}
 
     To prove it, we use a \textbf{loop invariant} $y = {a}^{b-x} \land x \ge 0$
     and we denote it $I(x,y)$ for short. We \textit{prove} that the invariant
@@ -1128,9 +1160,9 @@ while (x > 0) do {
     We have:
 
     \begin{eqnarray*}
-        I(x,y) \land x > 0 \Rightarrow I(x-1, y \cdot a) & \textrm{assertion} \\
-        \{ I(x-1, y \cdot a) \} y = y * a; \{ I(x-1, y) \} & \textrm{assignment} \\
-        \{ I(x-1, y) \} x = x - 1; \{ I(x,y) & \textrm{assigment}
+        I(x,y) \land x > 0 \Rightarrow I(x-1, y \cdot a) & \textrm{(assertion)} \\
+        \{ I(x-1, y \cdot a) \} y = y * a; \{ I(x-1, y) \} & \textrm{(assignment)} \\
+        \{ I(x-1, y) \} x = x - 1; \{ I(x,y) & \textrm{(assigment)}
     \end{eqnarray*}
 
     Hence we infer (sequence, consequence):
@@ -1146,43 +1178,47 @@ while (x > 0) do {
     \{ I(x,y) \land x > 0 \} \{ y=y*a; x=x-1; \} \{ I(x,y) \}
     $$
 
+    \bigskip
     We can infer (loop):
 
     \begin{minipage}{\linewidth}
-        \begin{minipage}{0.3\linewidth}
-            $\{ I(x,y) \}$
+        \begin{minipage}[c]{0.3\linewidth}
+            $$\{ I(x,y) \}$$
         \end{minipage}
-        \begin{minipage}{0.3\linewidth}
+        \begin{minipage}[c]{0.3\linewidth}
+            \centering
 \begin{lstlisting}
-    while (x > 0) do {
-        y = y * a;
-        x = x-1;
+while (x > 0) do {
+    y = y * a;
+    x = x-1;
 }
 \end{lstlisting}
         \end{minipage}
-        \begin{minipage}{0.3\linewidth}
-            $\{ I(x,y) \land x \le 0 \}$
+        \begin{minipage}[c]{0.3\linewidth}
+            $$\{ I(x,y) \land x \le 0 \}$$
         \end{minipage}
     \end{minipage}
 
     \subsubsection{Consequence}
 
     Let $I(x,y) \equiv y = {a}^{b-x} \land x \ge 0$, we have
+    \bigskip
 
     \begin{minipage}{\linewidth}
         \begin{minipage}{0.3\linewidth}
-            $\{ I(x,y) \}$
+            $$\{ I(x,y) \}$$
         \end{minipage}
-        \begin{minipage}{0.3\linewidth}
+        \begin{minipage}[c]{0.3\linewidth}
+            \centering
 \begin{lstlisting}
-    while (x > 0) do {
-        y = y * a;
-        x = x-1;
+while (x > 0) do {
+    y = y * a;
+    x = x-1;
 }
 \end{lstlisting}
         \end{minipage}
-        \begin{minipage}{0.3\linewidth}
-            $\{ I(x,y) \land x \le 0 \}$
+        \begin{minipage}[c]{0.3\linewidth}
+            $$\{ I(x,y) \land x \le 0 \}$$
         \end{minipage}
     \end{minipage}
 
@@ -1195,20 +1231,21 @@ while (x > 0) do {
 
     Hence (consequence):
 
-    \begin{minipage}{\linewidth}
-        \begin{minipage}{0.3\linewidth}
-            $\{ x \ge 0 \land x = b \land y = 1 \}$
+    \begin{minipage}[c]{\linewidth}
+        \begin{minipage}[c]{0.3\linewidth}
+            $$\{ x \ge 0 \land x = b \land y = 1 \}$$
         \end{minipage}
-        \begin{minipage}{0.3\linewidth}
-            \begin{lstlisting}
-                while (x>0) do {
-                    y = y*a;
-                    x = x-1;
-                }
-            \end{lstlisting}
+        \begin{minipage}[c]{0.3\linewidth}
+            \centering
+\begin{lstlisting}
+while (x>0) do {
+    y = y*a;
+    x = x-1;
+}
+\end{lstlisting}
         \end{minipage}
-        \begin{minipage}{0.3\linewidth}
-            $\{ y = {a}^{b} \}$
+        \begin{minipage}[c]{0.3\linewidth}
+            $$\{ y = {a}^{b} \}$$
         \end{minipage}
     \end{minipage}
 
@@ -1249,7 +1286,7 @@ while (x > 0) do {
     \begin{eqnarray*}
         (b \ge 0) \Rightarrow (b \ge 0 \land b =b \land 1 = 1) & \textrm{(assertion)} \\
         \{ b \ge 0 \land b = b \land 1 = 1 \} \{ x=b; y=1; \} \{ x \ge 0 \land x = b \land y = 1 \} & \textrm{(assignment, sequence)} \\
-        \{ X \ge 0 \land x =b \land y = 1 \} while (x>0) do \{ \ldots \} \{ y = {a}^{b} \} & \textrm{(loop, consequence)}
+        \{ X \ge 0 \land x =b \land y = 1 \} \textrm{ while } (x>0) \textrm{ do } \{ \ldots \} \{ y = {a}^{b} \} & \textrm{(loop, consequence)}
     \end{eqnarray*}
 
     Hence the property (sequence, consequence)
@@ -1262,16 +1299,22 @@ while (x > 0) do {
     consequence, assignment, sequence and choice. Here is the one for the
     loop:
 
+    \begin{center}
+    \begin{minipage}{0.6\linewidth}
     \begin{framed}
-        \inference{
-        \begin{array}{l}
-            [I \land B] S [I], \\
-            [I \land B \land E = z] S [E < z], \\
+    \[
+    \inference{
+        {\begin{array}{c}
+            \lbrack I \land B \rbrack S [I], \\
+            \lbrack I \land B \land E = z \rbrack S [E < z], \\
             I \Rightarrow E \ge 0
-        \end{array}
-        }
-        {[I] \textrm{ while } (B) do S [I \land\lnot{} B]}
+        \end{array}}
+    }
+    {[I] \textrm{ while } (B) \textrm{ do } S [I \land\lnot B]}
+    \]
     \end{framed}
+    \end{minipage}
+    \end{center}
 
     $E$ is an integer-type expression, if we allow real expression we have the
     risk that it could decrease indefinitely (for example, x=1 and a loop until
@@ -1282,15 +1325,19 @@ while (x > 0) do {
     \subsubsection{Example}
 
     We want to prove:
-    $[b \ge 0]$
+    \begin{center}
+    $$[b \ge 0]$$
+    \begin{minipage}{0.4\linewidth}
 \begin{lstlisting}
 {
     x = b;
     y = 1;
-    while (x > 0) do \ldots
+    while (x > 0) do ...
 }
 \end{lstlisting}
-    $[y = a^{b}]$
+    \end{minipage}
+    $$[y = a^{b}]$$
+    \end{center}
 
     \bigskip
 
@@ -1299,20 +1346,34 @@ while (x > 0) do {
     thing that can prevent the termination is the loop, the termination of the
     loop will lead to the termination of the program:
 
-    $[ x \ge 0 \land x =b \land y=1]$
+    \begin{center}
+    $$[ x \ge 0 \land x =b \land y=1]$$
+    \begin{minipage}{0.3\linewidth}
 \begin{lstlisting}
-    while (x>0) do { y = y *a ; x = x -1; }
+while (x>0) do {
+    y = y*a;
+    x = x -1;
+}
 \end{lstlisting}
-    $y = {a}^{b}$
+    \end{minipage}
+    $$y = {a}^{b}$$
+    \end{center}
 
     \bigskip
 
     We want to prove
-    $[x \ge 0 \land x =b \land y =1]$
+    \begin{center}
+    $$[x \ge 0 \land x =b \land y =1]$$
+    \begin{minipage}{0.3\linewidth}
 \begin{lstlisting}
-    while (x>0) do { y = y * a; x = x -1; }
+while (x>0) do {
+    y = y * a;
+    x = x -1;
+}
 \end{lstlisting}
-    $[y = {a}^{b}]$
+    \end{minipage}
+    $$[y = {a}^{b}]$$
+    \end{center}
 
     \bigskip
 
@@ -1320,11 +1381,15 @@ while (x > 0) do {
     for partial correctness. We prove that the \textbf{variant decreases} on
     every execution of the body of the loop: \newline
 
-    $[y = {a}^{b-x} \land x \ge 0 \land x > 0 \land x = {x}_{0}]$
+    \begin{center}
+    $$[y = {a}^{b-x} \land x \ge 0 \land x > 0 \land x = {x}_{0}]$$
+    \begin{minipage}{0.5\linewidth}
 \begin{lstlisting}
-    { y = y * a; x = x-1; }
+{ y = y * a; x = x-1; }
 \end{lstlisting}
-    $[x < {x}_{0}]$
+    \end{minipage}
+    $$[x < {x}_{0}]$$
+    \end{center}
 
     \bigskip
 
@@ -1339,14 +1404,18 @@ while (x > 0) do {
 
     We can deduce the desired property as for partial correctness:
 
-    $[y = {a}^{b-x} \land x \ge 0]$
+    \begin{center}
+    $$[y = {a}^{b-x} \land x \ge 0]$$
+    \begin{minipage}{0.3\linewidth}
 \begin{lstlisting}
 while (x > 0) do {
     y = y * a;
     x = x - 1;
 }
 \end{lstlisting}
-    $[y = {a}^{b-x} \land x \ge 0 \land 0 \land x \le 0]$
+    \end{minipage}
+    $$[y = {a}^{b-x} \land x \ge 0 \land 0 \land x \le 0]$$
+    \end{center}
 
     \subsubsection{Well-founded termination}
 
@@ -1354,16 +1423,24 @@ while (x > 0) do {
     termination for non-integer variants if there exists a well-founded order
     on the variable discussed in the variant. We write the rule as
 
+    \begin{center}
+    \begin{minipage}{0.6\linewidth}
     \begin{framed}
+    \[
         \inference{
-            \begin{array}{l}
-                [I \land B] S [I], \\
-                [I \land B \land E = z] S [E \prec z], \\
+            {\begin{array}{c}
+                \lbrack I \land B \rbrack\quad S\quad [I], \\
+                \lbrack I \land B \land E = z \rbrack\quad S\quad [E \prec z], \\
                 I \Rightarrow W(E)
-            \end{array}
+            \end{array}}
         }
-        {[I] \textrm{ while } (B) do S [I \land\lnot{} B]}
+        {
+        \lbrack I\rbrack\quad \textrm{ while } (B) \textrm{ do } S\quad [I \land\lnot{} B]
+        }
+    \]
     \end{framed}
+    \end{minipage}
+    \end{center}
 
     where
     \begin{itemize}
@@ -1379,28 +1456,42 @@ while (x > 0) do {
     If the execution of $S$ doesn't affect any variable in $p$, i.e.
     if $vars(p) \cap assign(S) = \oslash$ then
 
+    \begin{center}
+    \begin{minipage}{0.5\linewidth}
     \begin{framed}
+        \[
         \inference{}
         { \{ p \} S \{ p \}}
+    \]
     \end{framed}
+    \end{minipage}
+    \end{center}
 
     \subsection{Conjunction}
 
+    \begin{center}
+    \begin{minipage}{0.5\linewidth}
     \begin{framed}
         \[
         \inference{ \{ p \} S \{ q \}, \{ p' \} S \{ q' \} }
         { \{ p \land p' \} S \{ q \land q' \} }
         \]
     \end{framed}
+    \end{minipage}
+    \end{center}
 
     \subsection{Disjunction}
 
+    \begin{center}
+    \begin{minipage}{0.5\linewidth}
     \begin{framed}
         \[
         \inference{ \{ p \} S \{ q \}, \{ p' \} S \{ q' \} }
         { \{ p \lor p' \} S \{ q \lor q' \} }
         \]
     \end{framed}
+    \end{minipage}
+    \end{center}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
