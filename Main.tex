@@ -1493,6 +1493,44 @@ while (x > 0) do {
     \end{minipage}
     \end{center}
 
+    % TODO : We could add the full proof for power
+
+    \subsection{On soundness and completeness}
+
+    The five proof rules (consequence, assignment, sequence, choice, loop)
+    generate a set of theorems $\Phi$ (and a total correctness variant
+    $\Phi_{\perp}$).
+
+    \begin{eqnarray*}
+        \vdash \{ p \} S \{ q \} & \textrm{iff} & \{ p \} S \{ q \} \in \Phi \\
+        \vdash [ p ] S [ q ] & \textrm{iff} & [ p ] S [ q ] \in \Phi_{\perp}
+    \end{eqnarray*}
+
+    As a reminder, \textit{soundness} corresponds to \enquote{if
+    $\vdash \{ p \} S \{ q \}$ then $\models \{ p \} S \{ q \}$}.
+    \textit{Completeness} correspond to \enquote{if $\models \{ p \} S \{ q \}$
+    then $\vdash \{ p \} S \{ q \}$}.
+
+    \subsubsection{Soundness: application on assignment}
+
+    Remember the rule for assignment:
+
+    \begin{center}
+        \begin{minipage}{0.4\linewidth}
+        \begin{framed}
+            \inference{}
+            { \{ p[E/V] \} V = E; \{ p \} }
+        \end{framed}
+        \end{minipage}
+    \end{center}
+
+    Let $\sigma \models p[E/V]$
+
+    \begin{description}
+        \item[Semantics] $(V = E; , \sigma) \longrightarrow (\{\}, \sigma[V := \sigma(E)]) $
+        \item[Substitution lemma] $\sigma \models p[E/V]$ iff $\sigma[V:=\sigma(E)] \models p$
+    \end{description}
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SECTION : Verification conditions
