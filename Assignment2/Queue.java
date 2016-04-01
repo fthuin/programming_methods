@@ -26,8 +26,8 @@ public class Queue {
     /* * * * * *
      * FIELDS  *
      * * * * * */
-    private /*@spec_public*/ int[] data;    // the elements of the queue
-    private /*@spec_public*/ int size;      // the number of elements in the queue
+    private /*@spec_public@*/ int[] data;    // the elements of the queue
+    private /*@spec_public@*/ int size;      // the number of elements in the queue
 
     /* * * * * * * * * * *
      * Class invariants  *
@@ -49,7 +49,7 @@ public class Queue {
       @*/
     public Queue(int max) {
         this.data = new int[max];
-        /*@ set data.owner = this; */
+        //@ set data.owner = this;
         this.size = 0;
     }
 
@@ -67,7 +67,7 @@ public class Queue {
      * Return element at index {n}.
      */
     /*@
-     @ requires 0 <= n && n < data.length;
+     @ requires 0 <= n && n < size;
      @ ensures \result == data[n];
      @*/
     public int get(int n) {
