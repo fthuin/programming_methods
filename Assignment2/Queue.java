@@ -32,10 +32,18 @@ public class Queue {
     /* * * * * * * * * * *
      * Class invariants  *
      * * * * * * * * * * */
+    // data must never be null
     //@ invariant data != null;
+    // the size should be non-negative and not greater than data.length
     //@ invariant 0 <= size && size <= data.length;
+    // the array must be sorted in ascending order
     //@ invariant (\forall int i, j; 0 <= i && i < j && j < size ; data[i] <= data[j] );
+    // The owner of data is this object
     //@ invariant data.owner == this;
+
+    /* * * * * *
+     * Methods *
+     * * * * * */
 
     /**
      * Return an empty stack with a capacity of max elements (max >= 0).
@@ -76,7 +84,7 @@ public class Queue {
      @ // The result must be the element at index n
      @ ensures \result == data[n];
      @*/
-    public int get(int n) {
+    public /*@pure@*/ int get(int n) {
         return data[n];
     }
 
