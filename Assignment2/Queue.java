@@ -137,7 +137,6 @@ public class Queue {
     /*@
      @ // the size should be decremented
      @ modifies size;
-     @ // TODO REMOVE modifies data[size-1];
      @ // there must be at least one element
      @ requires 1 <= size;
      @ // the result should be the one at the previous-last index
@@ -199,21 +198,6 @@ public class Queue {
      */
     /*@
      @ private static ghost int[] neededIndex;
-     @ //modifies data[0..size];
-     @ // modifies size;
-     @ // modifies neededIndex;
-     @ TODO REMOVE //////////////////////////////////////////////////
-     @ TODO REMOVE //ensures (\forall int k, l ;
-     @ TODO REMOVE //         0 <= k && k < size &&
-     @ TODO REMOVE //         0 <= l && l < size &&
-     @ TODO REMOVE //         k != l ;
-     @ TODO REMOVE //         data[k] != data[l]);
-     @ TODO REMOVE //ensures (\forall int k ; 0 <= k && k < size ;
-     @ TODO REMOVE //         (\exists int l ; 0 <= l && l <= \old(size) ;
-     @ TODO REMOVE //          data[k] == \old(data[l])));
-     @ TODO REMOVE //ensures (\forall int k ; 0 <= k && k < \old(size) ;
-     @ TODO REMOVE //        data[neededIndex[k]] == \old(data[k]));
-     @ TODO REMOVE ////////////////////////////////////////////////////
      @ // Every element in the new array appears only once
      @ ensures (\forall int i, j; 0 <= i && i < j && j < size; data[i] != data[j]);
      @ // Every element in the new array was in the old array
@@ -232,9 +216,9 @@ public class Queue {
         int i = 0; // current element in the old list
         int j = 0; // next spot to fill in the new list
 
-        // TODO : Vérifier la nécessité de l'invariant
-        //@ loop_invariant (\forall int a, b; 0 <= a && a < b && b < j; data[a] != data[b]);
-        //@ loop_invariant 0 <= i;
+        // Invariants not needed if we don't test -loopsafe
+        // @ loop_invariant (\forall int a, b; 0 <= a && a < b && b < j; data[a] != data[b]);
+        // @ loop_invariant 0 <= i;
         //@ decreases size - i;
         while (i < size) {
             data[j] = data[i];
