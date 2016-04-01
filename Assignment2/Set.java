@@ -1,3 +1,9 @@
+/*
+ ** Specifications in JML by Florian THUIN (SINF21MS/G) and Symeon MALENGREAU (SINF22MS/G)
+ ** LINGI2224 - Programming methods 2015-2016
+ ** Assignment 2, April 01, 2016
+ */
+
 /**
  * A bounded set (of integers), implemented as an ordered array where elements
  * are kept sorted.

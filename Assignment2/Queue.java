@@ -15,6 +15,9 @@
  ** You should have received a copy of the GNU General Public License
  ** along with this program; if not, write to the Free Software
  ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
+ ** Specifications in JML by Florian THUIN (SINF21MS/G) and Symeon MALENGREAU (SINF22MS/G)
+ ** LINGI2224 - Programming methods 2015-2016
+ ** Assignment 2, April 01, 2016
  */
 
 /**
