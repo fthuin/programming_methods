@@ -15,7 +15,7 @@
  ** You should have received a copy of the GNU General Public License
  ** along with this program; if not, write to the Free Software
  ** Foundation, Inc., 59 Temple Place - Suite 330, Boston, MA 02111-1307, USA.
- ** Specifications in JML by Florian THUIN (SINF21MS/G) and Symeon MALENGREAU (SINF22MS/G)
+ ** Specifications in JML by Florian THUIN (SINF21MS/G - 06561100) and Symeon MALENGREAU (SINF22MS/G - 57121100)
  ** LINGI2224 - Programming methods 2015-2016
  ** Assignment 2, April 01, 2016
  */
@@ -118,8 +118,6 @@ public class Queue {
 
         // shift elements one index up, from size-1 down to i.
         int j = size;
-        // TODO REMOVE @ loop_invariant i <= j && j <= size;
-        //@ decreases j - i;
         while (j > i) {
             data[j] = data[j-1];
             j = j - 1;
@@ -164,7 +162,6 @@ public class Queue {
      @*/
     public /*@pure@*/ int indexOf(int n) {
         int i = 0;
-        //@ loop_invariant 0 <= i && i <= size;
         while (i < size && data[i] < n) {
             i = i + 1;
         }
@@ -204,9 +201,6 @@ public class Queue {
      @ ensures (\forall int i; 0 <= i && i < size ; (\exists int j; 0 <= j && j < \old(size); data[i]==\old(data[j])));
      @ // Every element in the old array is in the new array
      @ ensures (\forall int k; 0 <= k && k < \old(size); data[neededIndex[k]] == \old(data[k]));
-     @ //ensures (\forall int i; 0 <= i && i < neededIndex.length; (\exists int j; 0 <= j && j < size; neededIndex[i]==data[j]));
-     @ //ensures (\forall int i; 0 <= i && i < \old(size) ; (\exists int j; 0 <= j && j < size; data[j]==\old(data)[i]));
-     @ // ensures (\forall int a; 0 <= a && a < \old(size); contains(\old(data[a])));
      @*/
     public void noDup() {
         // whole new array of length 'size'
@@ -216,15 +210,10 @@ public class Queue {
         int i = 0; // current element in the old list
         int j = 0; // next spot to fill in the new list
 
-        // Invariants not needed if we don't test -loopsafe
-        // @ loop_invariant (\forall int a, b; 0 <= a && a < b && b < j; data[a] != data[b]);
-        // @ loop_invariant 0 <= i;
-        //@ decreases size - i;
         while (i < size) {
             data[j] = data[i];
             //@ set neededIndex[i] = j;
             i = i + 1;
-            //@ decreases size - i;
             while (i < size && data[i] == data[j]) {
                 //@ set neededIndex[i] = j;
                 i = i + 1;

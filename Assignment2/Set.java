@@ -1,5 +1,5 @@
 /*
- ** Specifications in JML by Florian THUIN (SINF21MS/G) and Symeon MALENGREAU (SINF22MS/G)
+** Specifications in JML by Florian THUIN (SINF21MS/G - 06561100) and Symeon MALENGREAU (SINF22MS/G - 57121100)
  ** LINGI2224 - Programming methods 2015-2016
  ** Assignment 2, April 01, 2016
  */
@@ -20,7 +20,7 @@ public class Set {
      * Class invariants  *
      * * * * * * * * * * */
 
-     // data must never be null
+    // data must never be null
     //@ invariant data != null;
     // the size should be non-negative and not greater than data.length
     //@ invariant 0 <= size && size <= data.length;
@@ -95,8 +95,6 @@ public class Set {
 
         if (! contains(n)) {
             int j = size;
-            //@ loop_invariant i <= j && j <= size;
-            //@ decreases j - i;
             while (j > i) {
                 data[j] = data[j-1];
                 j = j - 1;
@@ -113,7 +111,6 @@ public class Set {
     /*@
      @ // the size should be decremented
      @ modifies size;
-     @ // TODO REMOVE modifies data[size-1];
      @ // there must be at least one element
      @ requires 1 <= size;
      @ // the result should be the one at the previous-last index
