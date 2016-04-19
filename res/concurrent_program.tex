@@ -1,0 +1,11 @@
+\begin{lstlisting}
+p1 = null; p2 = null;
+par {
+    p1 = locate(db, "LLN");
+} and {
+    p2 = locate(db, "NYC");
+} and {
+    while (p1==null || p2==null) do {} // wait
+    d = distance(p1,p2);
+}
+\end{lstlisting}

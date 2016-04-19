@@ -1,0 +1,20 @@
+\begin{minipage}{\linewidth}
+    \begin{minipage}{0.475\linewidth}
+        $$[[S]](X) \subseteq Y$$
+    \end{minipage}
+    \begin{minipage}{0.475\linewidth}
+        \begin{tikzpicture}[on grid, auto, node distance=2cm]
+            \node[draw, state]  (X) at (0,0) {X};
+            \node[draw, state, below of = X] (X2) {X'};
+            \node[draw, state, right of = X] (X3) { };
+            \node[draw, state, right of = X2] (X4) { };
+            \node[draw, ellipse, fit=(X3) (X4)] {Y};
+
+            \draw[line width=2pt, shorten >=2pt, -latex] (X.north) -- (X3.north);
+            \draw[line width=2pt, shorten >=2pt, -latex] (X.south) -- (X3.south);
+            \draw[line width=2pt, shorten >=2pt, -latex] (X2.north) -- (X4.north);
+            \draw[line width=2pt, shorten >=2pt, -latex] (X2.south) -- (X4.south);
+
+        \end{tikzpicture}
+    \end{minipage}
+\end{minipage}

@@ -1,0 +1,20 @@
+\begin{lstlisting}
+contains(x,n) {
+    switch (x) {
+        case Nil : return false;
+        case Cons(n1,X1) :
+            return (n1 == n || contains(x1,n));
+    }
+}
+
+subset(x,y) {
+    switch (x) {
+        case Nil : return true;
+        case Cons(n, x1) : return (contains(y,n) && subset(x1, y))
+    }
+}
+
+eq(x,y) {
+    return (subset(x,y) && subset(y,x));
+}
+\end{lstlisting}

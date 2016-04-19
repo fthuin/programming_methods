@@ -17,7 +17,7 @@
 
 \graphicspath{{img/}}
 
-\usetikzlibrary{arrows, chains, decorations}
+\usetikzlibrary{automata, arrows, chains, decorations, positioning, shapes, fit, backgrounds}
 
 \lstset{
     language=Java,
@@ -1531,17 +1531,293 @@ while (x > 0) do {
         \item[Substitution lemma] $\sigma \models p[E/V]$ iff $\sigma[V:=\sigma(E)] \models p$
     \end{description}
 
+    The proof is similar for other rules.
+
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SECTION : Verification conditions
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \section{Verification Conditions}
   \label{sec:Verification Conditions}
+
+  \subsection{Automated proof}
+
+  To build an automated proof, we have to split the execution in atomic parts,
+  such that it is easier to prove.
+
+  \begin{center}
+      \inference{\{p\} S_{1} \{ r \}, \{r\} S_{2} \{q\}}{\{ p \} \{ S_1 S_2 \} \{q\}}
+  \end{center}
+
+  But as we don't want to write this $r$ between every instruction, is it
+  possible to derive a \enquote{minimal} $r$ from ${S}_{2}$ and $q$? Sometimes
+  yes, and it is what we call \textbf{pre-condition calculus}. \newline
+
+  But usually, it is not possible, for example to prove loop there is no easy
+  solution, only approximations.
+
+  \begin{center}
+      \inference{\{ I \land B \} S \{ I \}}
+      {\{I\} \textrm{ while (B) do S } \{ I \land \lnot B\}}
+  \end{center}
+
+  That's where \textbf{invariants}, if we know $I$ we can add it to the program
+  and use those annotations to automate the proof (verification conditions). \newline
+
+  Consider a program $S$ and a set of (memory states) $Y$ (i.e.\ stores).
+
+  A \textbf{liberal\footnote{liberal $\equiv$ partial correctness} pre-condition} of $Y$ for $S$ is a set of states $X$ such
+  that any non-divergent execution of $S$ from a state of $X$ terminates in a
+  state of $Y$.
+
+  \input{res/data_stores.tex}
+
+  % TODO(Florian Thuin): reprendre à partir d'ici
+
+  \input{res/wlp.tex}
+
+  $$wlp(S,Y) = \{ \sigma \mid [[S]](\sigma) \subseteq Y \}$$
+  $$wp(S,Y) = \{\sigma \mid {[[S]]}_{\perp}(\sigma) \subseteq Y \}$$
+
+  \begin{eqnarray*}
+      \vDash \{p\}S\{q\} & \iff & [[S]]([[p]]) \subseteq [[q]] \\
+      & \iff & [[p]] \textrm{ is a pre-condition of } [[q]] \textrm{ for } S \\
+      & \iff & [[p]] \subseteq wlp(S, [[q]])
+  \end{eqnarray*}
+
+  \begin{eqnarray*}
+      \vDash \{p\}S\{q\} & \iff & [[p]] \subseteq wlp(S, [[q]]) \\
+      & \iff & [[p]] \subseteq [[{p}_{q}]] \\
+      & \iff & \forall\sigma \cdot (\sigma\vDash p) \Rightarrow (\sigma \vDash {p}_{q}) \\
+      & \iff & \vDash (p \Rightarrow {p}_{q})
+  \end{eqnarray*}
+
+  \begin{eqnarray*}
+      \vDash \{p\} S\{q\} & \iff & \vDash (p \Rightarrow wlp(S,q))
+  \end{eqnarray*}
+
+  \inference{p \Rightarrow wlp(S, q)}
+  {\{p\}S\{q\}}
+
+  \begin{eqnarray*}
+      [[S]](\sigma) \subseteq [[q]] & \iff & \sigma \in [[wlp(S,q)]]
+  \end{eqnarray*}
+
+  \begin{eqnarray*}
+      [[S]](\sigma) \subseteq [[q]] & \iff & \sigma[V:=\sigma(E)] \in [[q]] \textrm{ (semantics)} \\
+      & \iff & \sigma \in [[q[E/V]]] \textrm{ (subst. lemma)} \\
+      & \iff & \sigma \in [[wlp(S,q)]]
+  \end{eqnarray*}
+
+  \inference{}
+  {\{q[E/V]\} V=E; \{q\}}
+
+  \begin{eqnarray*}
+      wlp(y=y*a; , y = a^{b-x+1}) & \equiv & (y=a^{b-x+1})[y\cdot a/y] \\
+      & \equiv & (y \cdot a = a^{b-x+1})
+  \end{eqnarray*}
+
+  $$(y=a^{b-x}) \Rightarrow (y\cdot a = a^{b-x+1})$$
+
+  \begin{eqnarray*}
+      wlp(V=E;,q) & = & q[E/V] \\
+      wlp(\{\}, q) & = & q \\
+      wlp(\{S\ SS\}, q) & = & wlp(S, wlp(\{SS\},q)) \\
+      wlp(\textrm{if }(B)\textrm{ then } S_{1} \textrm{ else } S_{2}, q) & = & (B \land wlp(S_{1}, q) \lor (\lnot B \land wlp (S_{2}, q)))
+  \end{eqnarray*}
+
+  \begin{eqnarray*}
+      p_{0} & \equiv & wlp(S_{0} q) \\
+      & \equiv & wlp(div, q) \equiv true \\
+      p_{k+1} & \equiv  & wlp (S_{k+1}, q) \\
+      & \equiv & wlp(if (B) then \{S\ S_{k} else {}, q\}) \\
+      & \equiv & (B \land wlp(S,p_{k})) \land (\lnot B \land q)
+  \end{eqnarray*}
+
+  \begin{tabular}{c|c|c}
+      \toprule
+      k     & $\Phi^{k}$ (false)  & $\Phi^{k}$ (true) \\ \hline
+      k = 0 & $false$           & $true$ \\ \hline
+      k = 1 & $\lnot B \land q$ & $\lnot B \Rightarrow q$ \\ \hline
+      k = 2 & $(\lnot B \land q) \lor (B \land wp(S, \lnot B \land q))$ & $(\lnot B \Rightarrow q) \land (B \Rightarrow wlp(S, \lnot B \Rightarrow q))$ \\ \hline
+      \ldots & \ldots & \ldots \\ \hline
+      $k \rightarrow \infty$ & $wp(S^{*}, q)$ & $wlp(S^{*}, q)$ \\
+      \bottomrule
+  \end{tabular}
+
+  \inference{
+  [I \land B] S [I], \\
+  [I \land B \land E = z] S [E < z], \\
+  I \Rightarrow E \ge 0
+  }
+  {[I] \{\textrm{invar }I\} \{\textrm{bound }E \}\textrm{ while }(B)\textrm{ do }S [I \land \lnot B]}
+
+  $$\vdash [p] AS [q] \iff \vdash vc(p,AS,q)$$
+
+  $$vc(p, AS, q) = \{p \Rightarrow vp(AS, q)\} \cup vc'(AS,q)$$
+
+  $$vp(\{\textrm{invar }I\}, \{\textrm{bound }E\}\textrm{ while }(B)\textrm{ do }AS, q) = I$$
+
+  \begin{eqnarray*}
+      vc'(\{\}, q) & = & \emptyset \\
+      vc'(V=E;, q) & = & \emptyset \\
+      vc'(\{AS\ ASS\}, q) & = & vc'(AS, vp(\{ASS\}, q)) \cup vc'(\{ASS\}, q) \\
+      vc'(\textrm{if }(B) \textrm{ then } {AS}_{1} \textrm{ else } {AS}_{2}, q) & = & vc'({AS}_{1}, q) \cup vc'({AS}_{2}, q) \\
+      vc'(\{\textrm{invar }I\}\{\textrm{bound }E\} \textrm{ while() do }AS, q) & = & \{I\land B \Rightarrow vp(AS,I)\} \\
+      & & \cup\ vc'(AS,I) \\
+      & & \cup\ \{I \land\lnot B \Rightarrow q\} \\
+      & & \cup\ \{I \land B \land E = z \Rightarrow vp(AS, E < z)\} \\
+      & & \cup\ vc'(AS, E<z) \\
+      & & \cup\ \{I \Rightarrow E \ge 0\} \\
+  \end{eqnarray*}
+
+  \begin{eqnarray*}
+      vc(b \ge 0, S_{0}, y = a^{b}) & \equiv & \{ b \ge 0 \Rightarrow vp(S_{0}, y = a^{b}) \} \cup vc'(S_{0}, y = a^{b}) \\
+      & \equiv & \{ b \ge 0 \Rightarrow vp(S_{0}, y = a^{b}) \} \cup vc'(S_{1}, y = a^{b})
+  \end{eqnarray*}
+
+  $$vp(S_{0}, y=a^{b}) \equiv vp(x=b, vp(y=1, vp(S_{1}, y=a^{b})))$$
+
+  $$vp(S_{1}, y=a^{b}) \equiv y = a^{(b-x)} \land x \ge 0$$
+
+  \begin{eqnarray*}
+      vp(S_{0}, y=a^{b}) & \equiv & vp(x=b, vp(y=1, y = a^{b-x} \land x \ge 0)) \\
+      & \equiv & 1 = a^{(b-b)} \land b \ge 0
+  \end{eqnarray*}
+
+  \begin{eqnarray*}
+      vc'(S_{1}, y = a^{b}) & = & \{ y = a^{(b-x)} \land x \ge 0 \land x > 0 \Rightarrow vp(S_{2}, y=a^{(b-x)} \land x \ge 0), \\
+      & & y = a^{(b-x)} \land x \ge 0 \land x \le 0 \Rightarrow y = a^{b}, \\
+      & & y = a^{(b-x)} \land x \ge 0 \land x > 0 \land x = z \Rightarrow vp(S_{2}, x < z), \\
+      & & y = a^{(b-x)} \land x \ge 0 \Rightarrow x \ge 0 \} \cup vc'(S_{2}, y = a^{(b-x)} \land x \ge 0) \cup vc'(S_{2}, x < z)
+  \end{eqnarray*}
+
+  \begin{eqnarray*}
+      vp(S_{2}, y = a^{(b-x)} \land x \ge 0) & \equiv & y \cdot a = a^{(b-(x-1)) \land (x-1) \ge 0} \\
+      vp(S_{2}, x < z) & \equiv & (x-1) < z
+  \end{eqnarray*}
+
+  $$vc'(S_{2}, y = a^{(b-x)} \land x \ge 0) = vc'(S_{2}, x < z ) = \emptyset $$
+
+  \begin{eqnarray*}
+      vc(b \ge 0, S_{0}, y = a^{b}) & = & \{ b \ge 0 \Rightarrow vp(S_{0}, y=a^{b})\} \cup vc'(S_{1}, y=a^{b}) \\
+      & = & \{ b \ge 0 \Rightarrow 1 = a^{(b-b)} \land b \ge 0, \\
+      & & y = a^{(b-x)} \land x \ge 0 \land x > 0 \Rightarrow y \cdot a = a^{(b-(x-1)} \land (x-1) \ge 0, \\
+      & & y = a^{(b-x)} \land x \ge 0 \land x \le 0 \Rightarrow y = a^{b}, \\
+      & & y = a^{(b-x)} \land x \ge 0 \land x > 0 \land x = z \Rightarrow (x-1) < z, \\
+      & & y = a^{(b-x)} \land x \ge 0 \Rightarrow x \ge 0 \}
+  \end{eqnarray*}
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SECTION : Procedures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \section{Procedures}
   \label{sec:Procedures}
+
+  \input{res/power}
+
+  \begin{eqnarray*}
+      VV & \equiv & V_{1}, \ldots, V_{n} \\
+      EE & \equiv & E_{1}, \ldots, E_{n} \\
+      VV := \sigma(EE) & \equiv & V_{1} := \sigma(E_{1}), \ldots, V_{n} := \sigma(E_{n})
+  \end{eqnarray*}
+
+  $$
+  \inference{}
+  {(V=P(EE);, \sigma) \longrightarrow (\{SS\} \cdot (V, \sigma), \sigma_{0}[VV := \sigma(EE)])}
+  $$
+
+  $$
+  \inference{(S,\sigma) \longrightarrow (S',\sigma')}
+  {(S\cdot (V, \sigma''), \sigma) \longrightarrow (S'\cdot (V,\sigma''), \sigma')}
+  $$
+
+  $$
+  \inference{}
+  {(\{\} \cdot (V, \sigma'), \sigma) \longrightarrow (\{\}, \sigma'[V:=\sigma(result)])}
+  $$
+
+  \begin{eqnarray*}
+      (S,\sigma) & \longrightarrow & (\{SS\}\cdot (growth,\sigma), \sigma_{1})\textrm{ with }\sigma_{1} = \sigma_{0}[a:=\sigma(1+rate), b:=\sigma(years)] \\
+      & & = \{a := 1.10, b:=3,\ldots\} \\
+      & \longrightarrow & \ldots \\
+      & \longrightarrow & (\{\}\cdot (growth, \sigma), \sigma_{2})\textrm{ with }\sigma_{2}(result) = 1.331 \\
+      & \longrightarrow & (\{\}, \sigma_{3})\textrm{ with }\sigma_{3} = \sigma[growth := \sigma_{2}(result)] = \{growth := 1.331, \ldots\}
+  \end{eqnarray*}
+
+  $$
+  \inference{}
+  {(V=P(EE);, \sigma) \longrightarrow (\{SS\}\cdot(V,\sigma), \sigma_{0}[VV:=\sigma(EE)])}
+  $$
+
+  $$
+  \inference{(\{SS\}, \sigma_{0}[VV:=\sigma(EE)]) \longrightarrow^{*} (\{\}, \sigma')}
+  {(V=P(EE);, \sigma) \longrightarrow (\{\}, \sigma[V:=\sigma'(result)])}
+  $$
+
+  $$
+  [[P(VV)\ \{SS\}]] : D^{n} \rightarrow 2^{D} = \lambda dd \cdot \{\sigma'(result) \mid (SS, \sigma_{0}[VV:=dd]) \longrightarrow^{*} (\{\}, \sigma')\}
+  $$
+
+  $$
+  V = P(EE);\ \approx\ \{VV=EE; \{SS\}\ V=result; \}
+  $$
+
+  $$
+  \inference{}
+  {\{p[E/result]\}\textrm{ return }E;\{p\}}
+  $$
+
+  $$
+  \inference{\{p\}\ \{SS\}\ \{q[result/V, \alpha]\}}
+  {\{p[EE/VV, \sigma^{-1}]\}\ V=P(EE);\ \{q\}}
+  $$
+
+  $$
+  \inference{\{p\}\ \{SS\}\ \{result > 1\}}
+  {\{p[1+rate/a, years/b]\} growth=power(1+rate, years); \{growth > 1\}}
+  $$
+
+  $$
+  \inference{[p]\ \{SS\}\ [q[result/V,\alpha]]}
+  {[p[EE/VV,\alpha^{-1}]]\ V=P(EE);\ [q]}
+  $$
+
+  \begin{eqnarray*}
+      wlp(return E;, q) & \equiv & q[E/result] \\
+      wlp(V=P(EE);, q) & \equiv & wlp(\{SS\}, q[result/V,\alpha])[EE/VV,\alpha^{-1}]
+  \end{eqnarray*}
+
+  \begin{eqnarray*}
+      wlp(growth=power(1+rate, years);, growth > 1) & = & wlp(\{SS\}, result > 1)[1+rate/a, years/b] \\
+      & = & (b >0 \land a > 1)[1+rate/a, years/b] \\
+      & = & years > 0 \land 1+rate > 1 \\
+      & \Leftarrow & rate > 0 \land years > 0
+  \end{eqnarray*}
+
+  $$
+  \inference{\{p\}\{SS\}\{q\}}
+  {\{p[EE/VV]\} V=P(EE); \{q[V/result, EE/VV]\}}
+  $$
+
+  $$
+  \inference{
+    \{p\}\{SS\}\{q\}, \\
+    p' \Rightarrow p[EE/VV], \\
+    q[V/result, EE/VV] \Rightarrow q'
+  }
+  {\{p'\} V=P(EE); \{q'\}}
+  $$
+
+  $$
+  \inference{\{ b \ge 0\}\{SS\}\{result = a^{b}\}}
+  {\{years \ge 0\} growth=power(1+rate, years)\{growth={(1+rate)}^{years}\}}
+  $$
+
+  \begin{eqnarray*}
+      \{years \ge 0\} S \{growth = {(1+rate)}^{years}\} & \textrm{(rule 2)} \\
+      \{rate > 0 \land years > 0 \} S \{rate > 0 \land years > 0\} & \textrm{(constant)} \\
+      \{rate > 0 \land years > 0 \} S \{growth > 1 \} & \textrm{(conjunction, consequence)}
+  \end{eqnarray*}
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SECTION : Recursion
@@ -1549,14 +1825,204 @@ while (x > 0) do {
   \section{Recursion}
   \label{sec:Recursion}
 
+  \input{res/rpower}
+
+  $$
+  \inference{\{p\}\{SS\}\{q\}}
+  {\{p[EE/VV]\} V=P(EE); \{q[V/result, EE/VV]\}}
+  $$
+
+  $$
+  \inference{\phi_{1},\ldots,\phi_{n} \vdash \phi}
+  {\phi'}
+  $$
+
+  $$
+  \inference{\forall k \in \mathbb{N} \cdot k < n \Rightarrow \phi(k) \vdash \phi(n)}
+  {\forall n \in \mathbb{N} \cdot \phi(n)}
+  $$
+
+  $$
+  \inference{\{p[EE/VV]\} V=P(EE); \{q[V/result, EE/VV]\} \vdash \{p\}\{SS\}\{q\}}
+  {\{p\}\{SS\}\{q\}}
+  $$
+
+  $$
+  \inference{
+    {call}_{1},\ldots,{call}_{n} \vdash {body}_{1}, \\
+    \ldots, \\
+    {call}_{1},\ldots,{call}_{n} \vdash {body}_{n}
+  }
+  {{body}_{k}}
+  $$
+
+  $$
+  \inference
+  {\{b - 1 \ge 0\} y = rpower(a,b-1); \{y = a^{b-1}\} \vdash \{b \ge 0 \} \{SS\} \{result=a^{b}\}}
+  {\{b \ge 0\} \{SS\} \{result = a^{b}\}}
+  $$
+
+  $$
+  \inference{
+    p \Rightarrow E \ge 0, \\
+    [p[EE/VV] \land E[EE/VV] < z] V=P(EE); [q[V/result, EE/VV]] \vdash [p \land E=z] \{SS\} [q]
+  }
+  {[p]\{SS\}[q]}
+  $$
+
+  $$
+  \inference{
+    b \ge 0 \Rightarrow b \ge 0, \\
+    [b-1 \ge 0 \land b -1 < z] y=rpower(a, b-1); [true] \\
+    \vdash [b \ge 0 \land b = z] \{SS\} [true]}
+    {[b \ge 0] \{SS\} [true]}
+  $$
+
+  $$
+  \inference{\{p_{P}\}\{ASS\}\{q_{P}\}}
+  {\{p_{P}[EE/VV]\} V=P(EE);\{q_{P}[V/result,EE/VV]\}}
+  $$
+
+  $$
+  \inference{
+    p_{P} \Rightarrow E_{P} \ge 0, \\
+    [p_{P}[EE/VV] \land E_{P}[EE/VV] < z] V = P(EE); [q_{P}[V/result, EE/VV]] \\
+    \vdash [p_{P} \land E_{P} = z] \{SS\} [q_{P}]
+  }
+  {[p_{P}] \{SS\} [q_{P}]}
+  $$
+
+  \begin{eqnarray*}
+      vp(\{SS\}, result=a^{b}) & = & (b > 0 \land vp(y=rpower(a, b-1);, y \cdot a = a^{b})) \lor (b \le 0 \land 1 = a^{b}) \\
+      vp(y=rpower(a,b-1);, y \cdot a = a^{b}) & = & (b-1 \ge 0) \land (b - 1 < z) \land (y' = a^{b-1} \Rightarrow y' \cdot a = a^{b}) \\
+      vc'(\{SS\}, result = a^{b}) & = & \emptyset
+  \end{eqnarray*}
+
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 % SECTION : Data Structures
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
   \section{Data Structures}
   \label{sec:Data Structures}
 
+  \begin{eqnarray*}
+      TT & \equiv & T_1, \ldots, T_n \\
+      dd & \equiv & d_1, \ldots, d_n \\
+      D_{TT} & \equiv & {D_{T}}_{1} \times \ldots \times {D_{T}}_{n} \\
+      dd:TT & \equiv & d_{1}:T_{1}, \ldots, d_{n}: T_{n} \\
+      & \equiv & dd \in D_{TT} \\
+      VV:TT & \equiv & V_{1}:T_{1}, \ldots, V_{n}:T_{n} \\
+      & \ldots &
+  \end{eqnarray*}
+
+  $$
+  \inference{
+    [p \land E = G_{1}(VV_{1})] S_{1} [q] \\
+    \ldots \\
+    [p \land E = G_{n}(VV_{n})] S_{n} [q]
+    }
+    {[p] S [q]}
+  $$
+
+  \begin{eqnarray*}
+      wp(S,q) & = & (E = G_{1} (VV_{1}) \land wp(S_{1}, q)) \lor \ldots \lor (E = G_{n} (VV_{n}) \land wp(S_{n}, q)) \\
+      vp(S, q) & = & wp (S, q) \\
+      vc'(S,q) & = & \emptyset
+  \end{eqnarray*}
+
+  $$
+  \inference{d' \prec_{T} d \Rightarrow \phi(d') \vdash \phi(d)}
+  {\vdash \phi(d)}
+  $$
+
+  $$
+  \inference{
+    \{\phi(d_{1i}) \mid T_{1i} = T \} \vdash \phi(G_{1}(d_{11},\ldots,d_{1m_{1}})), \\
+    \ldots, \\
+    \{ \phi(d_{ni}) \mid T_{ni} = T\} \vdash \phi(G_{n}(d_{n1}, \ldots, d_{nm_{n}})
+  }
+  {\vdash \phi(d)}
+  $$
+
+  $$
+  \inference{
+    \vdash \phi(Zero), \\
+    \phi(n) \vdash \phi(Succ(n))
+  }
+  {\vdash \phi(n)}
+  $$
+
+  $$
+  \inference{
+      \vdash \phi(Nil), \\
+      \phi(l) \vdash \phi(Cons(x,l))
+  }
+  {\vdash \phi(l)}
+  $$
+
+  $$
+  \inference{
+    p \Rightarrow W(Z), \\
+    [p[EE/VV] \land Z[EE/VV] < z] V' = P(EE); [q[V'/result, EE/VV]] \\
+    \vdash [p \land Z = z] \{SS\} [q]
+  }
+  {[p] \{SS\} [q]}
+  $$
+
+  $$
+  \inference{
+    p \Rightarrow W(Z), \\
+    [p[E'/V] \land E' < z] V' = P(E'); [q[V'/result, E'/V]] \\
+    \vdash [p \land V = z] \{SS\} [q]
+  }
+  {[p] \{SS\} [q]}
+  $$
+
+  $$
+  \inference{
+    \Big\lbrace \big\lbrace [p[V_{ij}/V]] V' = P(V_{ij}); [q[V'/result, V_{ij}/V]] \big\rbrace_{T_{ij}=T} \\
+    \vdash [p \land V = G_{i}(V_{i1}, \ldots, V_{im_{i}})] \{SS\} [q] \Big\rbrace_{i=1..n}
+  }
+  {[p] \lbrace SS \rbrace [q]}
+  $$
+
+  $$
+  \inference{
+    \vdash [p \land V = Zero] \lbrace SS\rbrace [q], \\
+    [p[V_1/V]] V'=P(V_1); [q[V'/result, V1/V]] \\
+    \vdash [p \land V = Succ(V_1)] \lbrace SS\rbrace [q] \\
+  }
+  {[p] \lbrace SS\rbrace [q]}
+  $$
+
+  $$
+  \inference{
+    \vdash [p \land V = Nil] \{SS\} [q], \\
+    [p[V_{2}/V]] V' = P(V_2); [q[V'/result, V_{2}/V]] \\
+    \vdash [p \land V = Cons(V_1, V_2)] \{SS\} [q]
+  }
+  {[p] \{SS\} [q]}
+  $$
+
+  $$
+  \inference{[p \land V = G_{i}(VV_{i})] S_{i} [q]}
+  {[ p \land V = G_{i}(VV_{i})] \{SS\} [q]}
+  $$
+
+  $$
+  \inference{
+    \Big\lbrace \big\lbrace [p[V_{ij}/V]] V' = P(V_{ij}); [q[V'/result, V_{ij}/V]] \big\rbrace_{T_{ij}=T} \\
+    \vdash [p \land V = G_{i}(VV_{i})] \{S_{i}\} [q] \Big\rbrace_{i=1..n}
+  }
+  {[p] \lbrace SS \rbrace [q]}
+  $$
+
   \section{Data abstraction}
   \label{sec:Data abstraction}
+
+  \input{res/equality}
+
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1571,31 +2037,134 @@ while (x > 0) do {
   \subsubsection{Reactive programs}
   \label{subs:Reactive programs}
   \subsubsection{Prooofs of reactive programs}
-  \label{subs:Prooofs of reactive programs}
+  \label{subs:Proofs of reactive programs}
   \subsection{Non-deterministic programs}
   \label{sub:Non-deterministic programs}
+
+  $$
+    [[S]](\sigma) = {[[S]]}_{\perp}(\sigma) = \{\sigma'\}
+  $$
+
+  $$
+    [[S]](\sigma) = \emptyset, {[[S]]}_{\perp}(\sigma) = \{\perp\}
+  $$
+
+  $$
+    \mid [[S]](\sigma) \mid \in \mathbb{N} \cup \{\infty\}
+  $$
+
   \subsubsection{Guarded commands}
   \label{subs:Guarded commands}
+
+  \input{res/guarded_example}
+
+  $$
+  \inference{}
+  {(choose {\{B_i \rightarrow S_i \}}_{i=1..n}, \sigma) \longrightarrow (S_k,\sigma)}
+  \sigma(B_k)=true
+  $$
+
+  $$
+  \inference{\{ p \land B_1 \} S_1 \{q\}, \ldots, \{p \land B_n \} S_n \{q\}}
+  {\{p\} choose {\{B_i \rightarrow S_i \}}_{i=1..n} \{q\}}
+  $$
+
   \subsubsection{Deadlock}
   \label{subs:Deadlock}
   \subsubsection{Strong vs. weak total correctness}
   \label{subs:Strong vs. weak total correctness}
+
+  \begin{eqnarray*}
+      {[[S]]}_{\perp \Delta}(\sigma) & = & [[S]](\sigma) \\
+      & \cup & \{\perp \mid (S,\sigma) {\rightarrow}^{\omega} \} \\
+      & \cup & \{\Delta \mid (S,\sigma) {\rightarrow}^{*} (S',\omega') \not\rightarrow, S' \neq \{\} \} \\
+      \vDash [p] S [q] & \iff & {[[S]]}_{\perp \Delta}([[p]]) \subseteq [[q]]
+  \end{eqnarray*}
+
+  $$
+  \inference{
+    p \Rightarrow (B_1 \lor \ldots \lor B_n) \\
+    [p \land B_1] S_1 [q], \ldots, [p \land B_n] S_n [q]
+  }
+  {[p] choose {\{B_i \rightarrow S_i\}}_{i=1..n} [q]}
+  $$
+
+  $$
+  wp(choose{\{B_i \rightarrow S_i\}}_{i=1..n}, q) = ({\bigvee}_{i=1..n} B_i) \land ({\bigwedge}_{i=1..n} (B_i \Rightarrow wp(S_i, q)))
+  $$
+
+  \begin{eqnarray*}
+      {[[S]]}_{\perp}(\sigma) & = & [[S]]{\sigma} \\
+      & \cup & \{\perp \mid (S,\sigma) \rightarrow^{\omega}\} \\
+      \vDash [p] S [q\mid\Delta] & \iff & [[S]]_{\perp}([[p]]) \subseteq [[q]] \\
+      & \iff & {[[S]]}_{\perp \Delta}([[p]]) \subseteq [[q]] \cup \{\Delta\}
+  \end{eqnarray*}
+
+  $$
+  \inference{[p \land B_1] S_1 [q \mid \Delta], \ldots, [p \land B_n] S_n [q \mid \Delta]}
+  {[p] choose {\{B_i \rightarrow S_i\}}_{i=1..n} [q \mid \Delta]}
+  $$
+
   \subsection{Concurrent programs}
   \label{sub:Concurrent programs}
+
+  \input{res/concurrent_program}
+
   \subsubsection{Interleaving}
   \label{subs:Interleaving}
+
+  $$
+  \inference{
+      \inference{(S_i,\sigma) \longrightarrow (S_{i}^{'}, \sigma')}
+      {(\textrm{par }S_1\textrm{ and }\ldots S_i \ldots\textrm{ and }S_n, \sigma) \longrightarrow (\textrm{par }S_1\textrm{ and }\ldots S_{i}^{'} \ldots\textrm{ and }S_n, \sigma')}
+  }
+  {(\textrm{par }\{\}\textrm{ and }\ldots\textrm{ and }\{\}, \sigma) \longrightarrow (\{\}, \sigma)}
+  $$
+
+  $$
+  \inference{
+    \inference{(S_i, \sigma) \longrightarrow (S_{i}^{'}, \sigma')}
+    {(\textrm{par }S_1\textrm{ and }\ldots S_i \ldots\textrm{ and }S_n, \sigma) \longrightarrow (\textrm{par }S_1\textrm{ and }\ldots S_{i}^{'}\ldots\textrm{ and } S_n, \sigma')}
+  }
+  {(\textrm{par } \{\}\textrm{ and }\ldots\textrm{ and }\{\}, \sigma) \longrightarrow (\{\},\sigma)}
+  $$
   \subsubsection{Atomicity}
   \label{subs:Atomicity}
   \subsubsection{Disjoint parallel programs}
   \label{subs:Disjoint parallel programs}
+
+  \inference{[p] \{S_1 \ldots S_n\} [q]}
+  {[p]\textrm{ par } S_1\textrm{ and }\ldots\textrm{ and }S_n [q]}
+
+  \inference{[p_1] S_1 [q_1], \ldots, [p_n] S_n [q_n]}
+  {[p_1 \land \ldots \land p_n]\textrm{ par }{\{S_i\}}_{i=1..n} [q_1 \land \ldots \land q_n]}
   \subsubsection{Compositional proofs}
   \label{subs:Compositional proofs}
   \subsubsection{General concurrent programs}
   \label{subs:General concurrent programs}
   \subsubsection{Interference-free proofs}
   \label{subs:Interference-free proofs}
+
+  $$
+  \lnot(pre(S_1') \land \bigwedge_k \lnot B_{1k} \land \ldots \land pre(S_n') \land \bigwedge_k \lnot B_{nk})
+  $$
+
+  $$
+  \inference{[p_1] S_1[q_1 \mid \Delta], \ldots, [p_n] S_n [q_n\mid\Delta]}
+  {[p_1 \land \ldots \land p_n] par{\{S_i\}}_{i=1..n} [q_1 \land \ldots \land q_n]}
+  $$
+
   \subsubsection{Fairness}
   \label{subs:Fairness}
+
+  \input{res/fairness}
+
+  \begin{eqnarray*}
+      {[[S]]}_{fair}(\sigma) & = & [[S]](\sigma) \\
+      & \cup & \{ \perp \mid (S,\sigma) \rightarrow^{\omega}\textrm{ \textbf{fairly}}\} \\
+      & \cup & \big\lbrace \Delta \mid (S,\sigma) \rightarrow^{*} (S',\sigma') \not\rightarrow, S' \neq \{\} \big\rbrace \\
+      \vDash_{fair} [p] S [q] & \iff & {[[S]]}_{fair}([[p]]) \subseteq [[q]]
+  \end{eqnarray*}
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -1656,6 +2225,13 @@ while (x > 0) do {
   \label{subs:Syntax}
   \subsubsection{Semantics over traces}
   \label{subs:Semantics over traces}
+
+  \begin{eqnarray*}
+      (K, \pi, i) \vDash & \iff & p \in V(\pi(i))\ \ \ (p\in P) \\
+      (K, \pi, i) \vDash & \iff & (K,\pi , i+1) \vDash \phi \\
+      (K, \pi, i) \vDash (\phi \cup \phi') & \iff & \exists j \cdot i \land (K, \pi, j) \vDash \phi' \land \forall k \cdot i \le k < j \Rightarrow (K, \pi, k) \vDash \phi
+  \end{eqnarray*}
+
   \subsubsection{Semantics over structures}
   \label{subs:Semantics over structures}
   \subsubsection{Examples (safety)}

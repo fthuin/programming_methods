@@ -1,0 +1,18 @@
+\begin{tikzpicture}[on grid, auto, node distance=3cm]
+    \node[draw, state, fill=white]  (X) at (0,0) {};
+    \node[draw, state, below of = X, fill=white] (X2) {};
+    \node[draw, state, right of = X] (X3) { };
+    \node[draw, state, right of = X2] (X4) { };
+    \node[draw, ellipse, fit=(X3) (X4)] (e1) {Y};
+
+    \begin{scope}[on background layer]
+        \node[draw, ellipse, fit=(X) (X2), fill=yellow] {wlp(S,Y)};
+        \node[draw, ellipse, fit=(e1)] {};
+    \end{scope}
+
+    \draw[line width=2pt, shorten >=2pt, -latex] (X.north) -- (X3.north);
+    \draw[line width=2pt, shorten >=2pt, -latex] (X.south) -- (X3.south);
+    \draw[line width=2pt, shorten >=2pt, -latex] (X2.north) -- (X4.north);
+    \draw[line width=2pt, shorten >=2pt, -latex] (X2.south) -- (X4.south);
+
+\end{tikzpicture}

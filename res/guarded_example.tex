@@ -1,0 +1,6 @@
+// pick a non-maximal among {a, b, c}
+nomax(a,b,c) {
+    choose (a<b) then return a;
+        or (b<c) then return b;
+        or (c<a) then return c;
+}

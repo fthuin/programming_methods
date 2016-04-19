@@ -1,0 +1,22 @@
+\begin{lstlisting}
+head(x) {
+    switch (x) {
+        case Nil : return ERROR;
+        case Cons(n, x1) : return n;
+    }
+}
+
+tail(x) {
+    switch (x)  {
+        case Nil : return ERROR;
+        case Cons(n, x1) : return x1;
+    }
+}
+
+length(x) {
+    switch (x) {
+        case Nil: return 0;
+        case Cons(n, x1) : return length(x1) + 1;
+    }
+}
+\end{lstlisting}
