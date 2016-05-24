@@ -18,4 +18,4 @@ This project was graded 8/10.
 
 Using JPF (Java PathFinder) model-checker, verify and correct the given Java classes to ensure the correctness of concurrent executions, model the state-space explosion of the proof and report results with real executions.
 
-This proejct was graded 10/10.
+This project was graded 10/10.
