@@ -1,0 +1,15 @@
+# set target application file and path to compiled and source code
+target = bank.TestHarness
+classpath = .
+sourcepath = .
+
+# Enumerate choices
+cg.enumerate_random = true
+
+# report output on error paths only
+vm.tree_output=false
+vm.path_output=true
+
+# rich reporting
+report.console.property_violation=error,trace,snapshot,output
+

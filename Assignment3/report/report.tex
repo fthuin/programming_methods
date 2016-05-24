@@ -1,0 +1,262 @@
+\documentclass[11pt, a4paper]{article}
+
+\usepackage[english]{babel}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{csquotes}
+\usepackage{listings}
+\usepackage{booktabs}
+
+\usepackage{color}
+
+\definecolor{pblue}{rgb}{0.13,0.13,1}
+\definecolor{pgreen}{rgb}{0,0.5,0}
+\definecolor{pred}{rgb}{0.9,0,0}
+\definecolor{pgrey}{rgb}{0.46,0.45,0.48}
+
+\lstset{language=Java,
+  showspaces=false,
+  showtabs=false,
+  breaklines=true,
+  frame=single,
+  showstringspaces=false,
+  breakatwhitespace=true,
+  commentstyle=\color{pgreen},
+  keywordstyle=\color{pblue},
+  morekeywords={assert},
+  stringstyle=\color{pred},
+  basicstyle=\ttfamily\footnotesize
+}
+
+\title{SINF2224 --- Assignment 3}
+\author{Florian Thuin \and Syméon Malengreau}
+\date{\today}
+
+\begin{document}
+    \maketitle
+
+    \section{Analytical expression of the number of different test cases}
+
+    The analyze of the function \verb#concurrentTransactions#$(N_t, N_a, M_i, M_t)$
+    to find the number of states $N_s$ can be separated in two parts:
+
+    \begin{itemize}
+        \item The first \verb#while# loop can create $N_a$ accounts with a
+        random value between 1 and $M_i$, such that:
+            $$N_s = {M_i}^{N_a}$$
+        \item The second \verb#while# loop can create from two random accounts
+        (identified by their unique id from 1 to $N_a$) a random tranfer from 1
+        to $M_t$
+            $$N_s = {(N_a \times N_a \times M_t)}^{N_t}$$
+    \end{itemize}
+
+    The result for the whole function can be expressed as:
+
+    $$N_s = {M_i}^{N_a} \times {(N_a \times N_a \times M_t)}^{N_t}$$
+
+    \section{Experiments}
+
+    Those experiments were made in Salle Intel, the computers are becoming really
+    old and we can't remove all other processes, such that we had very poor results
+    and we decided to use the modified test harness (see the next section).
+    It just removes the non-relevant states so it won't affect the
+    relation with the analytical expression. You can reproduce them by
+    running \verb#test.sh#.
+
+    \begin{tabular}{cccccc}
+        \toprule
+        $(N_t, N_a, M_i, M_t)$ & New & Visited & End & Time (mm:ss) & Memory \\
+        \toprule
+        (2,2,2,2)            & 15393 & 11031  & 1718 & 00:07 & 166MB \\
+        \midrule
+        (3,2,2,2)           & 397703 & 320454 & 12860 & 01:27 & 377MB \\
+        \midrule
+        (2,3,2,2)           & 254696 & 206144 & 26966 & 00:45 & 166MB \\
+        (2,4,2,2)           & 2336533 & 2006172 & 236338 & 06:45 & 515MB \\
+        \midrule
+        (2,2,3,2)           & 33855 & 24429 & 3728 & 00:08 & 166MB \\
+        (2,2,4,2)           & 59325 & 43007 & 6462 & 00:12 & 166MB \\
+        (2,2,5,2)           & 91803 & 66765 & 9920 & 00:17 & 166MB \\
+        (2,2,6,2)           & 131289 & 95703 & 14102 & 00:25 & 356MB \\
+        (2,2,7,2)           & 177783 & 129821 & 19008 & 00:32 & 377MB \\
+        (2,2,8,2)           & 231285 & 169119 & 24638 & 00:40 & 377MB \\
+        (2,2,9,2)           & 291795 & 213597 & 30992 & 00:51 & 356MB \\
+        (2,2,10,2)          & 359313 & 263255 & 38070 & 01:02 & 288MB \\
+        \midrule
+        (2,2,2,3)           & 29190 & 23024 & 3067 & 00:07 & 166MB \\
+        (2,2,2,4)           & 46587 & 38805 & 4736 & 00:10 & 288MB \\
+        (2,2,2,5)           & 68537 & 59060 & 6755 & 00:14 & 190MB \\
+        (2,2,2,6)           & 94424 & 83270 & 9100 & 00:20 & 377MB \\
+        (2,2,2,7)           & 124853 & 111944 & 11787 & 00:25 & 377MB \\
+        (2,2,2,8)           & 159150 & 144498 & 14798 & 00:31 & 288MB \\
+        (2,2,2,9)           & 198063 & 181590 & 18151 & 00:39 & 247MB \\
+        (2,2,2,10)          & 240783 & 222509 & 21834 & 00:47 & 377MB \\
+        \bottomrule
+    \end{tabular}
+    \bigskip
+
+    So as we can see in this table, the exponent factors in the analytic
+    formula really play an important role in the state-space explosion. We can
+    conclude that, even if it is not a perfect formula (because many other
+    factors come from what Java does internally and how JPF handles it),
+    it globally reflects where will be the limits of the proofs.
+
+    \section{Modified test harness}
+
+    We can delete the printf inside the tests method to reduce the number of
+    states. We can also delete all unused variables (that were needed by
+    those printf). Only by doing that, with (2, 2, 2, 2) as parameters, the
+    number of visited states decreases from 57835 to 11031 and the computation
+    time is already divided by 5. \newline
+
+    This is a very easy improvement, there might be many others directly
+    related to the program (as not trying to transfer from an account that
+    already has a balance of 0 to withdraw 0 and deposit 0) but we gave a try
+    to them and it only increased the number of states.
+
+    \section{Ensures balance never becomes negative}
+
+    First, we have to be sure that the initialization never sets a negative
+    balance by adding this line in the constructor:
+
+    \begin{lstlisting}
+assert 0 <= initialAmount;
+    \end{lstlisting}
+
+    We also have to add it to the methods that modifies the balance, such as
+    \verb#withdraw# and \verb#deposit#:
+
+    \begin{lstlisting}
+private void withdraw(final int amount) {
+    assert balance - amount >= 0;
+    balance = balance - amount;
+}
+private void deposit(final int amount) {
+    assert balance + amount >= 0;
+    balance = balance + amount;
+}
+    \end{lstlisting}
+
+    \section{Verifying merge method}
+
+    To verify \verb#merge# method, we can create more threads in the
+    \verb#concurrentTransactions# that will call it (concurrently from the ones
+    that do the \verb#transferTo#), we don't really care about the number of
+    merge (because it is not a parameter) so you can pay no attention to that.
+    Here is what we can write:
+
+    \begin{lstlisting}
+i = 0;
+while (i != nbrOfTransfer) {
+    final Thread t = new Thread() {
+        @Override
+        public void run() {
+            final Account a1 = accounts[random.nextInt(accounts.length)];
+            final Account a2 = accounts[random.nextInt(accounts.length)];
+            if (a1.id() != a2.id()) a1.merge(a2);
+        }
+    };
+    t.start();
+    i = i + 1;
+}
+    \end{lstlisting}
+
+    But as JPF will output, we just created a deadlock\ldots So let's add some
+    code to the merge method:
+
+    \begin{lstlisting}
+synchronized (getFirstSync(other)) {
+    synchronized (getSecondSync(other)) {
+        this.balance = this.balance + other.balance;
+        other.balance = 0;
+    }
+}
+    \end{lstlisting}
+
+    Now everything works fine for this method.
+
+    \section{Program errors found}
+
+    In this section, we explain the way we corrected the program following the
+    warning and errors given by running JPF on TestHarness. \newline
+
+    The first program error was a \textbf{computation mistake} in \verb#transferTo#,
+    such that balance could have been negative and the assertion would not
+    be true when the amount to transfer is less than the account balance
+    (JPF tells us it is a \verb#java.lang.AssertionError#):
+
+    \begin{lstlisting}[language=Java]
+withdraw(amount);
+other.deposit(maxAmount);
+    \end{lstlisting}
+
+    has to become:
+    \begin{lstlisting}[language=Java]
+withdraw(maxAmount);
+other.deposit(maxAmount);
+    \end{lstlisting}
+
+    The second program error was a \textbf{missing synchronization} on the access of the
+    field \verb#balance# in the method \verb#balance()# which resulted in an
+    \textit{unprotected field access}:
+
+    \begin{scriptsize}
+    \begin{verbatim}
+[SEVERE] unprotected field access of: bank.Account@272.balance in thread: Thread-1 (bank/Account.java:49)
+    \end{verbatim}
+    \end{scriptsize}
+
+    To correct that, we just have to synchronize it:
+
+    \begin{lstlisting}[language=Java]
+public int balance() {
+    synchronized (this) {
+        return balance;
+    }
+}
+    \end{lstlisting}
+
+    But correcting this error leads to create a deadlock (in fact, JPF now
+    finds it) and there is still an assertion failure. \newline
+
+    The third program error is that the \textbf{assertion fails} because the assignment
+    of \verb#initialSum# is outside the synchronized part such that it can still
+    change before the synchronisation. We have to move this line inside the scope
+    of the synchronisation. \newline
+
+    \begin{lstlisting}[language=Java]
+final int initialSum = this.balance() + other.balance();
+    \end{lstlisting}
+
+    The fourth program error was a \textbf{synchronization} mistake, as we saw
+    in the lab session with the dining philosophers problem, we have to lock
+    and release the resources in a way that doesn't create deadlock (use the
+    same order to lock and then release in the reverse order). Here, we can
+    use the unique id of each account to lock first the account with the lower
+    id and then the account with the greatest id. \newline
+
+    \begin{lstlisting}[language=Java]
+synchronized (getFirstSync(other)) {
+    synchronized (getSecondSync(other)) {
+        ...
+    }
+}
+private Account getFirstSync(Account other) {
+    if (this.id() < other.id()) return this;
+        else return other;
+}
+private Account getSecondSync(Account other) {
+    if (this.id() > other.id()) return this;
+        else return other;
+    }
+    \end{lstlisting}
+
+    \section{Conclusion}
+
+    We didn't find JPF to be very very verbose because the errors returned were
+    usually rather vague, but we tried our best to show that we understood how
+    JPF works and that it helped us to submit a program that is errors-free.
+    It was fun to try a program that is able to understand when two states
+    of the program are equals and that can detect errors with threads.
+
+\end{document}
